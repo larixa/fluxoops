@@ -1,446 +1,1084 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   LayoutDashboard,
   Ticket,
   PlusCircle,
   Search,
-  Filter,
   AlertTriangle,
-  CheckCircle2,
   Clock,
-  TrendingUp,
   ShieldAlert,
-  Zap,
   Activity,
-  Users,
   ArrowUpRight,
   Sparkles,
   Loader2,
-  ChevronRight,
   X,
-  AlertCircle,
   Network,
   Lock,
   Monitor,
   Smartphone,
   Mail,
-  HardDrive,
   Wifi,
   Bug,
-  Settings,
   Send,
   Flame,
   BookOpen,
+  Menu,
+  Cloud,
+  Layers,
+  Paperclip,
+  FileText,
 } from "lucide-react";
 import {
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
   CartesianGrid,
   Area,
   AreaChart,
 } from "recharts";
 
-// ============ DATA MODEL ============
+/* ============================================================
+   THEME — paleta warm light do portfólio
+============================================================ */
+
+const T = {
+  bg: "#FDFAF7",
+  bg2: "#F7F3EF",
+  surface: "#FFFFFF",
+  border: "rgba(44,40,37,0.1)",
+  text: "#2C2825",
+  textMid: "#6B6460",
+  textLight: "#A09890",
+
+  pink: "#F2A7BB",
+  pinkLight: "#FCE8EF",
+  pinkDark: "#B85C72",
+
+  yellow: "#F7D97A",
+  yellowLight: "#FEF6DC",
+  yellowDark: "#9E7A10",
+
+  blue: "#93BEE8",
+  blueLight: "#DCF0FF",
+  blueDark: "#3A6E9E",
+
+  green: "#6BBF8A",
+  greenLight: "#E5F5EC",
+  greenDark: "#2E7D52",
+
+  // categorias adicionais (variações da paleta)
+  catSecurity: "#8B2845",
+  catCloud: "#5A8FBE",
+  catApps: "#7B5BA5",
+  catAppsLight: "#EFE7F5",
+  catGeneral: "#8B7E73",
+};
+
+/* ============================================================
+   I18N — dicionários PT / EN
+============================================================ */
+
+const i18n = {
+  pt: {
+    appName: "FluxoOps",
+    appTagline: "ITSM · v1.0",
+    aiopsLabel: "AIOps",
+    aiopsDesc:
+      "Categorização e priorização automáticas de tickets, reduzindo tempo de triagem.",
+
+    nav: {
+      dashboard: "Dashboard",
+      catalog: "Catálogo",
+      tickets: "Tickets",
+      newTicket: "Novo ticket",
+    },
+
+    common: {
+      loading: "Carregando...",
+      now: "agora",
+      mAgo: "m atrás",
+      hAgo: "h atrás",
+      dAgo: "d atrás",
+      requester: "Solicitante",
+      team: "Time",
+      created: "Criado",
+      updated: "Atualizado",
+      close: "Fechar",
+      cancel: "Cancelar",
+      attachment: "Anexo",
+      attachments: "Anexos",
+      addAttachment: "Adicionar anexo",
+      removeAttachment: "Remover",
+    },
+
+    dashboard: {
+      eyebrow: "Operations Center",
+      title: "Dashboard",
+      kpiOpen: "Tickets abertos",
+      kpiCritical: "Críticos (P1)",
+      kpiSlaRisk: "SLA em risco",
+      kpiMttr: "MTTR médio",
+      resolvedToday: (n) => `${n} resolvidos hoje`,
+      maxResponse: "Resposta máx. 15min",
+      breached: (n) => `${n} já estouraram`,
+      lastResolved: "Últimos resolvidos",
+      dailyVolumeEyebrow: "Volume diário",
+      dailyVolumeTitle: "Tickets abertos vs resolvidos",
+      sevenDays: "7 dias",
+      distributionEyebrow: "Distribuição",
+      distributionTitle: "Por prioridade",
+      catalogEyebrow: "Service Catalog",
+      catalogTitle: "Tickets por categoria",
+      chartOpened: "Abertos",
+      chartResolved: "Resolvidos",
+    },
+
+    tickets: {
+      eyebrow: "Service Desk",
+      title: "Tickets",
+      searchPlaceholder: "Buscar por título, ID ou descrição...",
+      filterAll: "Todos",
+      filterOpen: "Abertos",
+      filterP1: "P1",
+      filterBreach: "SLA estourado",
+      thId: "ID",
+      thTitle: "Título",
+      thCategory: "Categoria",
+      thPrio: "Prio",
+      thStatus: "Status",
+      thSla: "SLA",
+      empty: "Nenhum ticket encontrado.",
+    },
+
+    newTicket: {
+      eyebrow: "AIOps Categorization",
+      title: "Novo ticket",
+      desc: "A IA analisa o conteúdo e propõe categoria, prioridade e time. Você pode revisar e ajustar tudo antes de salvar.",
+      requester: "Solicitante",
+      requesterPh: "Nome do usuário",
+      titleLabel: "Título",
+      titlePh: "Resumo curto do problema",
+      descLabel: "Descrição detalhada",
+      descPh: "Descreva o problema, o que aconteceu, o que tentou...",
+      analyzeBtn: "Categorizar com IA",
+      analyzing: "Analisando...",
+      aiAnalysis: "Análise da IA",
+      reasoning: "Raciocínio",
+      category: "Categoria",
+      subcategory: "Subcategoria",
+      priority: "Prioridade",
+      teamLabel: "Time responsável",
+      slaTarget: "Tempo de resolução alvo",
+      initialResponse: "Resposta inicial em até",
+      submit: "Criar ticket",
+      reviewHint:
+        "Caso a IA não tenha classificado corretamente, ajuste os campos abaixo manualmente.",
+      attachmentHint: "Tipos aceitos: imagens, PDFs, logs (até 10MB)",
+    },
+
+    catalog: {
+      eyebrow: "Self-service portal",
+      title: "Catálogo de Serviços",
+      desc: "Itens padronizados que o time de TI oferece. Solicitações pelo catálogo seguem fluxo pré-aprovado e SLAs definidos — reduzem tempo de triagem e padronizam o atendimento.",
+      searchPh: "O que você precisa? Ex: VPN, AWS, App Interna A...",
+      all: "Todos",
+      requestBtn: "Solicitar",
+      empty: "Nenhum serviço encontrado.",
+      modalEyebrow: "Confirmar solicitação",
+      modalEstTime: "Tempo estimado",
+      modalNotes: "Observações (opcional)",
+      modalNotesPh: "Detalhes adicionais, urgência, contexto...",
+      modalApproval:
+        "Esse serviço requer aprovação. O ticket será criado em status 'Novo' e aguardará validação do gestor antes da execução.",
+      modalSubmit: "Abrir solicitação",
+      approval: "Aprovação",
+    },
+
+    detail: {
+      description: "Descrição",
+      aiAnalysis: "Análise da IA",
+      slaStatus: "Status do SLA",
+      breached: "Estourado",
+      atRisk: "Em risco",
+      onTrack: "Dentro do prazo",
+      slaTarget: "Alvo",
+      hoursTotal: "h totais",
+      changeStatus: "Mudar status",
+    },
+
+    priorities: {
+      P1: "P1 — Crítico",
+      P2: "P2 — Alto",
+      P3: "P3 — Médio",
+      P4: "P4 — Baixo",
+    },
+
+    statuses: {
+      new: "Novo",
+      in_progress: "Em andamento",
+      waiting: "Aguardando usuário",
+      resolved: "Resolvido",
+      closed: "Fechado",
+    },
+
+    categories: {
+      iam: "Acesso e Identidade",
+      hardware: "Hardware",
+      cloud: "Cloud Infrastructure",
+      apps_internal: "Aplicações Internas",
+      network: "Rede",
+      security: "Segurança",
+      saas: "SaaS Corporativo",
+      general: "Geral",
+    },
+
+    reasoning: {
+      security:
+        "Indicadores de incidente de segurança detectados — escalada prioritária para o SOC.",
+      network:
+        "Problema de conectividade ou infraestrutura de rede identificado.",
+      iam: "Solicitação relacionada a identidade, autenticação ou controle de acesso.",
+      hardware: "Falha ou solicitação de hardware físico identificada.",
+      cloud:
+        "Solicitação envolvendo infraestrutura cloud (AWS / Azure / GCP) — provisionamento, escalonamento ou configuração.",
+      apps_internal:
+        "Problema ou solicitação relacionada a uma aplicação interna da empresa.",
+      saas: "SaaS corporativo (M365, Google Workspace, Salesforce, etc.) impactado.",
+      general: "Solicitação geral sem categoria técnica específica.",
+      catalog: (id) =>
+        `Solicitação aberta via Catálogo de Serviços (${id}). Item padronizado, fluxo automatizado.`,
+    },
+  },
+
+  en: {
+    appName: "FluxoOps",
+    appTagline: "ITSM · v1.0",
+    aiopsLabel: "AIOps",
+    aiopsDesc:
+      "Automated ticket categorisation and prioritisation, reducing triage time.",
+
+    nav: {
+      dashboard: "Dashboard",
+      catalog: "Catalog",
+      tickets: "Tickets",
+      newTicket: "New ticket",
+    },
+
+    common: {
+      loading: "Loading...",
+      now: "now",
+      mAgo: "m ago",
+      hAgo: "h ago",
+      dAgo: "d ago",
+      requester: "Requester",
+      team: "Team",
+      created: "Created",
+      updated: "Updated",
+      close: "Close",
+      cancel: "Cancel",
+      attachment: "Attachment",
+      attachments: "Attachments",
+      addAttachment: "Add attachment",
+      removeAttachment: "Remove",
+    },
+
+    dashboard: {
+      eyebrow: "Operations Center",
+      title: "Dashboard",
+      kpiOpen: "Open tickets",
+      kpiCritical: "Critical (P1)",
+      kpiSlaRisk: "SLA at risk",
+      kpiMttr: "Avg MTTR",
+      resolvedToday: (n) => `${n} resolved today`,
+      maxResponse: "Max response 15min",
+      breached: (n) => `${n} already breached`,
+      lastResolved: "Last resolved",
+      dailyVolumeEyebrow: "Daily volume",
+      dailyVolumeTitle: "Opened vs resolved tickets",
+      sevenDays: "7 days",
+      distributionEyebrow: "Distribution",
+      distributionTitle: "By priority",
+      catalogEyebrow: "Service Catalog",
+      catalogTitle: "Tickets by category",
+      chartOpened: "Opened",
+      chartResolved: "Resolved",
+    },
+
+    tickets: {
+      eyebrow: "Service Desk",
+      title: "Tickets",
+      searchPlaceholder: "Search by title, ID or description...",
+      filterAll: "All",
+      filterOpen: "Open",
+      filterP1: "P1",
+      filterBreach: "SLA breached",
+      thId: "ID",
+      thTitle: "Title",
+      thCategory: "Category",
+      thPrio: "Prio",
+      thStatus: "Status",
+      thSla: "SLA",
+      empty: "No tickets found.",
+    },
+
+    newTicket: {
+      eyebrow: "AIOps Categorisation",
+      title: "New ticket",
+      desc: "AI analyses the content and proposes category, priority and team. You can review and adjust everything before saving.",
+      requester: "Requester",
+      requesterPh: "User name",
+      titleLabel: "Title",
+      titlePh: "Brief summary of the issue",
+      descLabel: "Detailed description",
+      descPh: "Describe the issue, what happened, what you've tried...",
+      analyzeBtn: "Categorise with AI",
+      analyzing: "Analysing...",
+      aiAnalysis: "AI Analysis",
+      reasoning: "Reasoning",
+      category: "Category",
+      subcategory: "Subcategory",
+      priority: "Priority",
+      teamLabel: "Assigned team",
+      slaTarget: "Target resolution time",
+      initialResponse: "Initial response within",
+      submit: "Create ticket",
+      reviewHint: "If the AI did not classify correctly, adjust the fields manually below.",
+      attachmentHint: "Accepted: images, PDFs, logs (up to 10MB)",
+    },
+
+    catalog: {
+      eyebrow: "Self-service portal",
+      title: "Service Catalog",
+      desc: "Standardised items offered by the IT team. Catalog requests follow pre-approved workflows and defined SLAs — reducing triage time and standardising support.",
+      searchPh: "What do you need? E.g. VPN, AWS, Internal App A...",
+      all: "All",
+      requestBtn: "Request",
+      empty: "No services found.",
+      modalEyebrow: "Confirm request",
+      modalEstTime: "Estimated time",
+      modalNotes: "Notes (optional)",
+      modalNotesPh: "Additional details, urgency, context...",
+      modalApproval:
+        "This service requires approval. The ticket will be created in 'New' status and will await manager validation before execution.",
+      modalSubmit: "Submit request",
+      approval: "Approval",
+    },
+
+    detail: {
+      description: "Description",
+      aiAnalysis: "AI Analysis",
+      slaStatus: "SLA status",
+      breached: "Breached",
+      atRisk: "At risk",
+      onTrack: "On track",
+      slaTarget: "Target",
+      hoursTotal: "h total",
+      changeStatus: "Change status",
+    },
+
+    priorities: {
+      P1: "P1 — Critical",
+      P2: "P2 — High",
+      P3: "P3 — Medium",
+      P4: "P4 — Low",
+    },
+
+    statuses: {
+      new: "New",
+      in_progress: "In progress",
+      waiting: "Waiting on user",
+      resolved: "Resolved",
+      closed: "Closed",
+    },
+
+    categories: {
+      iam: "Identity & Access",
+      hardware: "Hardware",
+      cloud: "Cloud Infrastructure",
+      apps_internal: "Internal Applications",
+      network: "Network",
+      security: "Security",
+      saas: "Corporate SaaS",
+      general: "General",
+    },
+
+    reasoning: {
+      security: "Security incident indicators detected — priority escalation to the SOC.",
+      network: "Connectivity or network infrastructure issue identified.",
+      iam: "Request related to identity, authentication or access control.",
+      hardware: "Physical hardware failure or request identified.",
+      cloud:
+        "Request involving cloud infrastructure (AWS / Azure / GCP) — provisioning, scaling or configuration.",
+      apps_internal: "Issue or request related to an internal company application.",
+      saas:
+        "Corporate SaaS (M365, Google Workspace, Salesforce, etc.) impacted.",
+      general: "General request without specific technical category.",
+      catalog: (id) =>
+        `Request opened via Service Catalog (${id}). Standardised item, automated workflow.`,
+    },
+  },
+};
+
+/* ============================================================
+   DATA MODEL
+============================================================ */
 
 const PRIORITIES = {
-  P1: { label: "P1 — Crítico", color: "#ff3b5c", slaResponseMin: 15, slaResolveMin: 240, weight: 4 },
-  P2: { label: "P2 — Alto", color: "#f5a623", slaResponseMin: 60, slaResolveMin: 480, weight: 3 },
-  P3: { label: "P3 — Médio", color: "#4a9eff", slaResponseMin: 240, slaResolveMin: 1440, weight: 2 },
-  P4: { label: "P4 — Baixo", color: "#7a8499", slaResponseMin: 1440, slaResolveMin: 4320, weight: 1 },
+  P1: { color: T.pinkDark, slaResponseMin: 15, slaResolveMin: 240, weight: 4 },
+  P2: { color: T.yellowDark, slaResponseMin: 60, slaResolveMin: 480, weight: 3 },
+  P3: { color: T.blueDark, slaResponseMin: 240, slaResolveMin: 1440, weight: 2 },
+  P4: { color: T.textLight, slaResponseMin: 1440, slaResolveMin: 4320, weight: 1 },
 };
 
 const STATUSES = {
-  new: { label: "Novo", color: "#4a9eff" },
-  in_progress: { label: "Em andamento", color: "#f5a623" },
-  waiting: { label: "Aguardando usuário", color: "#a78bfa" },
-  resolved: { label: "Resolvido", color: "#00d4aa" },
-  closed: { label: "Fechado", color: "#7a8499" },
+  new: { color: T.blueDark },
+  in_progress: { color: T.yellowDark },
+  waiting: { color: T.pinkDark },
+  resolved: { color: T.greenDark },
+  closed: { color: T.textLight },
 };
 
 const CATEGORIES = {
   iam: {
-    label: "Acesso e Identidade",
     icon: Lock,
-    accent: "#a78bfa",
-    subcategories: ["Reset de senha", "MFA", "Provisionamento", "Desprovisionamento", "Permissões RBAC"],
+    accent: T.pinkDark,
+    bg: T.pinkLight,
+    subcategories: {
+      pt: ["Reset de senha", "MFA", "Provisionamento", "Desprovisionamento", "Permissões RBAC", "SSO / SAML"],
+      en: ["Password reset", "MFA", "Provisioning", "Deprovisioning", "RBAC permissions", "SSO / SAML"],
+    },
     defaultTeam: "Identity Team",
   },
   hardware: {
-    label: "Hardware",
     icon: Monitor,
-    accent: "#f5a623",
-    subcategories: ["Notebook", "Periféricos", "Mobile", "Impressora", "Estação de trabalho"],
+    accent: T.yellowDark,
+    bg: T.yellowLight,
+    subcategories: {
+      pt: ["Notebook", "Periféricos", "Mobile", "Impressora", "Estação de trabalho"],
+      en: ["Laptop", "Peripherals", "Mobile", "Printer", "Workstation"],
+    },
     defaultTeam: "Field Support",
   },
-  software: {
-    label: "Software",
-    icon: Bug,
-    accent: "#4a9eff",
-    subcategories: ["Licença", "Instalação", "Erro / Bug", "Atualização", "Configuração"],
-    defaultTeam: "Application Support",
+  cloud: {
+    icon: Cloud,
+    accent: T.catCloud,
+    bg: T.blueLight,
+    subcategories: {
+      pt: [
+        "AWS — EC2 / Compute",
+        "AWS — S3 / Storage",
+        "AWS — IAM / Permissões",
+        "Azure — Virtual Machines",
+        "Azure — Entra ID",
+        "GCP — Compute / GKE",
+        "Kubernetes / Containers",
+        "Terraform / IaC",
+        "Monitoramento (CloudWatch / Azure Monitor)",
+        "Custos / FinOps",
+      ],
+      en: [
+        "AWS — EC2 / Compute",
+        "AWS — S3 / Storage",
+        "AWS — IAM / Permissions",
+        "Azure — Virtual Machines",
+        "Azure — Entra ID",
+        "GCP — Compute / GKE",
+        "Kubernetes / Containers",
+        "Terraform / IaC",
+        "Monitoring (CloudWatch / Azure Monitor)",
+        "Cost / FinOps",
+      ],
+    },
+    defaultTeam: "Cloud Operations",
+  },
+  apps_internal: {
+    icon: Layers,
+    accent: T.catApps,
+    bg: T.catAppsLight,
+    subcategories: {
+      pt: [
+        "App Interna A — Login / Acesso",
+        "App Interna A — Erro / Bug",
+        "App Interna A — Performance",
+        "App Interna A — Solicitação de funcionalidade",
+        "App Interna B — Login / Acesso",
+        "App Interna B — Erro / Bug",
+        "App Interna B — Performance",
+        "App Interna B — Solicitação de funcionalidade",
+        "Integração entre apps internas",
+      ],
+      en: [
+        "Internal App A — Login / Access",
+        "Internal App A — Error / Bug",
+        "Internal App A — Performance",
+        "Internal App A — Feature request",
+        "Internal App B — Login / Access",
+        "Internal App B — Error / Bug",
+        "Internal App B — Performance",
+        "Internal App B — Feature request",
+        "Integration between internal apps",
+      ],
+    },
+    defaultTeam: "Internal Apps Support",
   },
   network: {
-    label: "Rede",
     icon: Wifi,
-    accent: "#00d4aa",
-    subcategories: ["VPN", "WiFi", "Conectividade", "Firewall", "DNS / DHCP"],
+    accent: T.greenDark,
+    bg: T.greenLight,
+    subcategories: {
+      pt: ["VPN", "WiFi", "Conectividade", "Firewall", "DNS / DHCP", "Lentidão de rede"],
+      en: ["VPN", "WiFi", "Connectivity", "Firewall", "DNS / DHCP", "Network slowness"],
+    },
     defaultTeam: "Network Operations",
   },
   security: {
-    label: "Segurança",
     icon: ShieldAlert,
-    accent: "#ff3b5c",
-    subcategories: ["Phishing", "Malware", "Incidente", "Violação de política", "Acesso indevido"],
+    accent: T.catSecurity,
+    bg: "#F5E5EA",
+    subcategories: {
+      pt: ["Phishing", "Malware", "Incidente", "Violação de política", "Acesso indevido", "Vulnerabilidade reportada"],
+      en: ["Phishing", "Malware", "Incident", "Policy violation", "Unauthorised access", "Reported vulnerability"],
+    },
     defaultTeam: "SOC / Security",
   },
-  apps: {
-    label: "Aplicações",
+  saas: {
     icon: Network,
-    accent: "#06b6d4",
-    subcategories: ["SaaS (M365, Google)", "ERP / CRM", "Integração", "API"],
-    defaultTeam: "Application Support",
-  },
-  telecom: {
-    label: "Telefonia",
-    icon: Smartphone,
-    accent: "#ec4899",
-    subcategories: ["Softphone", "Conferência", "Mobile corporativo"],
-    defaultTeam: "Telecom",
+    accent: T.blueDark,
+    bg: T.blueLight,
+    subcategories: {
+      pt: ["Microsoft 365", "Google Workspace", "Salesforce", "SAP / ERP", "Slack / Teams", "Outras SaaS"],
+      en: ["Microsoft 365", "Google Workspace", "Salesforce", "SAP / ERP", "Slack / Teams", "Other SaaS"],
+    },
+    defaultTeam: "SaaS Support",
   },
   general: {
-    label: "Geral",
     icon: Mail,
-    accent: "#7a8499",
-    subcategories: ["Dúvida", "Solicitação de informação", "Onboarding"],
+    accent: T.catGeneral,
+    bg: T.bg2,
+    subcategories: {
+      pt: ["Dúvida", "Solicitação de informação", "Onboarding", "Treinamento"],
+      en: ["Question", "Information request", "Onboarding", "Training"],
+    },
     defaultTeam: "Service Desk N1",
   },
 };
 
-// ============ SERVICE CATALOG ============
+/* ============================================================
+   SERVICE CATALOG (cloud-focused)
+============================================================ */
 
 const SERVICE_CATALOG = [
   // IAM
   {
     id: "svc-iam-01",
-    name: "Reset de senha",
-    description: "Recuperação de senha do domínio corporativo (AD / Entra ID).",
+    name: { pt: "Reset de senha", en: "Password reset" },
+    desc: {
+      pt: "Recuperação de senha do domínio corporativo (AD / Entra ID).",
+      en: "Corporate domain password recovery (AD / Entra ID).",
+    },
     category: "iam",
-    subcategory: "Reset de senha",
+    subKey: 0,
     defaultPriority: "P3",
-    estimatedTime: "15 min",
+    estimatedTime: { pt: "15 min", en: "15 min" },
     approval: false,
   },
   {
     id: "svc-iam-02",
-    name: "Reset de MFA",
-    description: "Restabelecer autenticação multifator após troca de aparelho ou perda de acesso.",
+    name: { pt: "Reset de MFA", en: "MFA reset" },
+    desc: {
+      pt: "Restabelecer autenticação multifator após troca de aparelho.",
+      en: "Re-establish multi-factor authentication after device change.",
+    },
     category: "iam",
-    subcategory: "MFA",
+    subKey: 1,
     defaultPriority: "P2",
-    estimatedTime: "30 min",
+    estimatedTime: { pt: "30 min", en: "30 min" },
     approval: false,
   },
   {
     id: "svc-iam-03",
-    name: "Criação de novo usuário",
-    description: "Provisionamento de conta para novo colaborador com perfil padrão por departamento.",
+    name: { pt: "Onboarding de novo usuário", en: "New user onboarding" },
+    desc: {
+      pt: "Provisionamento completo: AD, M365, acessos básicos por departamento.",
+      en: "Complete provisioning: AD, M365, basic department access.",
+    },
     category: "iam",
-    subcategory: "Provisionamento",
+    subKey: 2,
     defaultPriority: "P3",
-    estimatedTime: "4h",
+    estimatedTime: { pt: "4h", en: "4h" },
     approval: true,
   },
   {
     id: "svc-iam-04",
-    name: "Desprovisionamento (offboarding)",
-    description: "Bloqueio e arquivamento de conta de colaborador desligado conforme política.",
+    name: { pt: "Offboarding completo", en: "Complete offboarding" },
+    desc: {
+      pt: "Bloqueio de contas, revogação de acessos, arquivamento de dados conforme GDPR.",
+      en: "Account block, access revocation, data archival per GDPR.",
+    },
     category: "iam",
-    subcategory: "Desprovisionamento",
+    subKey: 3,
     defaultPriority: "P2",
-    estimatedTime: "2h",
+    estimatedTime: { pt: "2h", en: "2h" },
     approval: true,
   },
   {
     id: "svc-iam-05",
-    name: "Adicionar a grupo de segurança",
-    description: "Concessão de permissão via grupo RBAC (SharePoint, Teams, file share, app).",
+    name: { pt: "Configurar SSO para nova app", en: "Configure SSO for new app" },
+    desc: {
+      pt: "Integração SAML / OIDC com Entra ID para nova aplicação.",
+      en: "SAML / OIDC integration with Entra ID for new application.",
+    },
     category: "iam",
-    subcategory: "Permissões RBAC",
+    subKey: 5,
     defaultPriority: "P3",
-    estimatedTime: "1h",
+    estimatedTime: { pt: "3 dias úteis", en: "3 business days" },
     approval: true,
   },
+
   // Hardware
   {
     id: "svc-hw-01",
-    name: "Solicitar notebook corporativo",
-    description: "Provisão de notebook conforme catálogo padrão (perfil Office / Dev / Design).",
+    name: { pt: "Solicitar notebook corporativo", en: "Request corporate laptop" },
+    desc: {
+      pt: "Provisão de notebook conforme catálogo padrão.",
+      en: "Laptop provisioning per standard catalog.",
+    },
     category: "hardware",
-    subcategory: "Notebook",
+    subKey: 0,
     defaultPriority: "P3",
-    estimatedTime: "3 dias úteis",
+    estimatedTime: { pt: "3 dias úteis", en: "3 business days" },
     approval: true,
   },
   {
     id: "svc-hw-02",
-    name: "Solicitar periféricos",
-    description: "Mouse, teclado, headset, monitor adicional, dock station.",
+    name: { pt: "Solicitar periféricos", en: "Request peripherals" },
+    desc: {
+      pt: "Mouse, teclado, headset, monitor adicional, dock station.",
+      en: "Mouse, keyboard, headset, additional monitor, dock station.",
+    },
     category: "hardware",
-    subcategory: "Periféricos",
+    subKey: 1,
     defaultPriority: "P4",
-    estimatedTime: "2 dias úteis",
+    estimatedTime: { pt: "2 dias úteis", en: "2 business days" },
+    approval: false,
+  },
+
+  // Cloud Infrastructure
+  {
+    id: "svc-cl-01",
+    name: { pt: "Provisionar VM AWS / Azure", en: "Provision AWS / Azure VM" },
+    desc: {
+      pt: "Criação de instância EC2 ou Azure VM via Terraform com tags e ownership.",
+      en: "EC2 or Azure VM creation via Terraform with tags and ownership.",
+    },
+    category: "cloud",
+    subKey: 0,
+    defaultPriority: "P3",
+    estimatedTime: { pt: "1 dia útil", en: "1 business day" },
+    approval: true,
+  },
+  {
+    id: "svc-cl-02",
+    name: { pt: "Criar bucket S3 / Azure Blob", en: "Create S3 / Azure Blob bucket" },
+    desc: {
+      pt: "Provisionamento de storage com políticas de retenção, criptografia e acesso.",
+      en: "Storage provisioning with retention, encryption and access policies.",
+    },
+    category: "cloud",
+    subKey: 1,
+    defaultPriority: "P3",
+    estimatedTime: { pt: "4h", en: "4h" },
+    approval: true,
+  },
+  {
+    id: "svc-cl-03",
+    name: { pt: "Conceder acesso IAM cloud", en: "Grant cloud IAM access" },
+    desc: {
+      pt: "Atribuição de role / policy AWS IAM ou Azure RBAC com least privilege.",
+      en: "AWS IAM role / policy or Azure RBAC assignment with least privilege.",
+    },
+    category: "cloud",
+    subKey: 2,
+    defaultPriority: "P3",
+    estimatedTime: { pt: "4h", en: "4h" },
+    approval: true,
+  },
+  {
+    id: "svc-cl-04",
+    name: { pt: "Deploy em Kubernetes", en: "Kubernetes deployment" },
+    desc: {
+      pt: "Deploy de novo serviço em cluster EKS / AKS / GKE com manifests revisados.",
+      en: "Deploy new service to EKS / AKS / GKE cluster with reviewed manifests.",
+    },
+    category: "cloud",
+    subKey: 6,
+    defaultPriority: "P3",
+    estimatedTime: { pt: "2 dias úteis", en: "2 business days" },
+    approval: true,
+  },
+  {
+    id: "svc-cl-05",
+    name: { pt: "Escalar recursos cloud", en: "Scale cloud resources" },
+    desc: {
+      pt: "Aumento de capacidade (CPU, memória, storage) em ambiente produtivo.",
+      en: "Capacity increase (CPU, memory, storage) in production environment.",
+    },
+    category: "cloud",
+    subKey: 0,
+    defaultPriority: "P2",
+    estimatedTime: { pt: "2h", en: "2h" },
+    approval: true,
+  },
+  {
+    id: "svc-cl-06",
+    name: { pt: "Investigar custo / billing cloud", en: "Investigate cloud cost / billing" },
+    desc: {
+      pt: "Análise FinOps de gastos anormais ou alertas de orçamento.",
+      en: "FinOps analysis of abnormal spend or budget alerts.",
+    },
+    category: "cloud",
+    subKey: 9,
+    defaultPriority: "P3",
+    estimatedTime: { pt: "1 dia útil", en: "1 business day" },
     approval: false,
   },
   {
-    id: "svc-hw-03",
-    name: "Solicitar celular corporativo",
-    description: "Smartphone gerenciado via MDM com perfil corporativo.",
-    category: "hardware",
-    subcategory: "Mobile",
+    id: "svc-cl-07",
+    name: { pt: "Configurar alerta de monitoramento", en: "Configure monitoring alert" },
+    desc: {
+      pt: "Criação de alarme no CloudWatch / Azure Monitor / Datadog.",
+      en: "Alarm creation in CloudWatch / Azure Monitor / Datadog.",
+    },
+    category: "cloud",
+    subKey: 8,
     defaultPriority: "P3",
-    estimatedTime: "5 dias úteis",
-    approval: true,
-  },
-  // Software
-  {
-    id: "svc-sw-01",
-    name: "Solicitar licença de software",
-    description: "Atribuição de licença (M365, Adobe CC, Visio, Project, ferramentas dev).",
-    category: "software",
-    subcategory: "Licença",
-    defaultPriority: "P3",
-    estimatedTime: "1 dia útil",
-    approval: true,
-  },
-  {
-    id: "svc-sw-02",
-    name: "Instalação de software",
-    description: "Instalação remota via Intune ou agendamento com Field Support.",
-    category: "software",
-    subcategory: "Instalação",
-    defaultPriority: "P4",
-    estimatedTime: "1 dia útil",
+    estimatedTime: { pt: "1 dia útil", en: "1 business day" },
     approval: false,
   },
-  // Network
-  {
-    id: "svc-net-01",
-    name: "Acesso VPN",
-    description: "Configuração e habilitação de cliente VPN para acesso remoto.",
-    category: "network",
-    subcategory: "VPN",
-    defaultPriority: "P3",
-    estimatedTime: "2h",
-    approval: true,
-  },
-  {
-    id: "svc-net-02",
-    name: "WiFi para visitante",
-    description: "Acesso temporário à rede de visitantes (até 7 dias).",
-    category: "network",
-    subcategory: "WiFi",
-    defaultPriority: "P4",
-    estimatedTime: "30 min",
-    approval: false,
-  },
-  {
-    id: "svc-net-03",
-    name: "Liberação de regra de firewall",
-    description: "Solicitação de exceção de firewall com justificativa de segurança.",
-    category: "network",
-    subcategory: "Firewall",
-    defaultPriority: "P3",
-    estimatedTime: "2 dias úteis",
-    approval: true,
-  },
-  // Apps
+
+  // Internal Apps
   {
     id: "svc-app-01",
-    name: "Acesso a aplicação SaaS",
-    description: "Provisionamento e atribuição de papel em aplicação SaaS corporativa.",
-    category: "apps",
-    subcategory: "SaaS (M365, Google)",
+    name: { pt: "Acesso à App Interna A", en: "Access to Internal App A" },
+    desc: {
+      pt: "Solicitação de acesso e atribuição de papel na App Interna A.",
+      en: "Access request and role assignment in Internal App A.",
+    },
+    category: "apps_internal",
+    subKey: 0,
     defaultPriority: "P3",
-    estimatedTime: "1 dia útil",
+    estimatedTime: { pt: "1 dia útil", en: "1 business day" },
     approval: true,
   },
   {
     id: "svc-app-02",
-    name: "Novo site SharePoint / Teams",
-    description: "Criação de site colaborativo com governança e proprietário definidos.",
-    category: "apps",
-    subcategory: "SaaS (M365, Google)",
-    defaultPriority: "P4",
-    estimatedTime: "2 dias úteis",
+    name: { pt: "Reportar bug na App Interna A", en: "Report bug in Internal App A" },
+    desc: {
+      pt: "Ticket técnico para o time de desenvolvimento da App Interna A.",
+      en: "Technical ticket for the Internal App A development team.",
+    },
+    category: "apps_internal",
+    subKey: 1,
+    defaultPriority: "P2",
+    estimatedTime: { pt: "Análise em 4h", en: "Analysis within 4h" },
+    approval: false,
+  },
+  {
+    id: "svc-app-03",
+    name: { pt: "Acesso à App Interna B", en: "Access to Internal App B" },
+    desc: {
+      pt: "Solicitação de acesso e atribuição de papel na App Interna B.",
+      en: "Access request and role assignment in Internal App B.",
+    },
+    category: "apps_internal",
+    subKey: 4,
+    defaultPriority: "P3",
+    estimatedTime: { pt: "1 dia útil", en: "1 business day" },
     approval: true,
   },
+  {
+    id: "svc-app-04",
+    name: { pt: "Reportar bug na App Interna B", en: "Report bug in Internal App B" },
+    desc: {
+      pt: "Ticket técnico para o time de desenvolvimento da App Interna B.",
+      en: "Technical ticket for the Internal App B development team.",
+    },
+    category: "apps_internal",
+    subKey: 5,
+    defaultPriority: "P2",
+    estimatedTime: { pt: "Análise em 4h", en: "Analysis within 4h" },
+    approval: false,
+  },
+  {
+    id: "svc-app-05",
+    name: { pt: "Solicitar nova funcionalidade", en: "Request new feature" },
+    desc: {
+      pt: "Submissão de feature request para apps internas. Avaliação pelo PO.",
+      en: "Feature request submission for internal apps. Evaluation by PO.",
+    },
+    category: "apps_internal",
+    subKey: 3,
+    defaultPriority: "P4",
+    estimatedTime: { pt: "Avaliação em 5 dias", en: "Evaluation within 5 days" },
+    approval: true,
+  },
+
+  // Network
+  {
+    id: "svc-net-01",
+    name: { pt: "Acesso VPN", en: "VPN access" },
+    desc: {
+      pt: "Configuração e habilitação de cliente VPN para acesso remoto.",
+      en: "VPN client setup and enablement for remote access.",
+    },
+    category: "network",
+    subKey: 0,
+    defaultPriority: "P3",
+    estimatedTime: { pt: "2h", en: "2h" },
+    approval: true,
+  },
+  {
+    id: "svc-net-02",
+    name: { pt: "Liberação de regra de firewall", en: "Firewall rule exception" },
+    desc: {
+      pt: "Solicitação de exceção de firewall com justificativa de segurança.",
+      en: "Firewall exception request with security justification.",
+    },
+    category: "network",
+    subKey: 3,
+    defaultPriority: "P3",
+    estimatedTime: { pt: "2 dias úteis", en: "2 business days" },
+    approval: true,
+  },
+
+  // SaaS
+  {
+    id: "svc-sa-01",
+    name: { pt: "Solicitar licença M365", en: "Request M365 license" },
+    desc: {
+      pt: "Atribuição de licença Microsoft 365 (E3, E5, Business Premium).",
+      en: "Microsoft 365 license assignment (E3, E5, Business Premium).",
+    },
+    category: "saas",
+    subKey: 0,
+    defaultPriority: "P3",
+    estimatedTime: { pt: "1 dia útil", en: "1 business day" },
+    approval: true,
+  },
+  {
+    id: "svc-sa-02",
+    name: { pt: "Novo site SharePoint / Teams", en: "New SharePoint / Teams site" },
+    desc: {
+      pt: "Criação de site colaborativo com governança e proprietário.",
+      en: "Collaborative site creation with governance and owner.",
+    },
+    category: "saas",
+    subKey: 0,
+    defaultPriority: "P4",
+    estimatedTime: { pt: "2 dias úteis", en: "2 business days" },
+    approval: true,
+  },
+
   // Security
   {
     id: "svc-sec-01",
-    name: "Reportar phishing",
-    description: "Notificação de tentativa de phishing para análise pelo SOC.",
+    name: { pt: "Reportar phishing", en: "Report phishing" },
+    desc: {
+      pt: "Notificação de tentativa de phishing para análise pelo SOC.",
+      en: "Phishing attempt notification for SOC analysis.",
+    },
     category: "security",
-    subcategory: "Phishing",
+    subKey: 0,
     defaultPriority: "P2",
-    estimatedTime: "1h",
+    estimatedTime: { pt: "1h", en: "1h" },
     approval: false,
   },
   {
     id: "svc-sec-02",
-    name: "Reportar incidente de segurança",
-    description: "Abertura formal de incidente de segurança para investigação imediata.",
+    name: { pt: "Reportar incidente de segurança", en: "Report security incident" },
+    desc: {
+      pt: "Abertura formal de incidente para investigação imediata.",
+      en: "Formal incident report for immediate investigation.",
+    },
     category: "security",
-    subcategory: "Incidente",
+    subKey: 2,
     defaultPriority: "P1",
-    estimatedTime: "Imediato",
+    estimatedTime: { pt: "Imediato", en: "Immediate" },
     approval: false,
   },
+
   // General
   {
     id: "svc-gen-01",
-    name: "Onboarding de novo colaborador",
-    description: "Pacote completo: conta, equipamento, acessos básicos, treinamento.",
+    name: { pt: "Dúvida geral / Como faço?", en: "General question / How do I?" },
+    desc: {
+      pt: "Suporte e orientação sobre processos, ferramentas ou políticas de TI.",
+      en: "Support and guidance on IT processes, tools or policies.",
+    },
     category: "general",
-    subcategory: "Onboarding",
-    defaultPriority: "P2",
-    estimatedTime: "3 dias úteis",
-    approval: true,
-  },
-  {
-    id: "svc-gen-02",
-    name: "Dúvida geral / Como faço?",
-    description: "Suporte e orientação sobre processos, ferramentas ou políticas de TI.",
-    category: "general",
-    subcategory: "Dúvida",
+    subKey: 0,
     defaultPriority: "P4",
-    estimatedTime: "1 dia útil",
+    estimatedTime: { pt: "1 dia útil", en: "1 business day" },
     approval: false,
   },
 ];
 
-// ============ SEED DATA ============
+/* ============================================================
+   SEED DATA
+============================================================ */
 
 const SEED_TICKETS = [
   {
     id: "INC-1001",
-    title: "Não consigo acessar o VPN corporativo",
-    description: "Desde manhã o cliente AnyConnect retorna 'authentication failed' mesmo com senha correta.",
+    title: { pt: "Não consigo acessar o VPN corporativo", en: "Cannot access corporate VPN" },
+    description: {
+      pt: "Desde manhã o cliente AnyConnect retorna 'authentication failed'.",
+      en: "Since this morning the AnyConnect client returns 'authentication failed'.",
+    },
     category: "network",
-    subcategory: "VPN",
+    subKey: 0,
     priority: "P2",
     status: "in_progress",
     team: "Network Operations",
     requester: "Anna Becker",
     createdAt: Date.now() - 1000 * 60 * 60 * 3,
     updatedAt: Date.now() - 1000 * 60 * 30,
-    aiReasoning: "Problema de autenticação em VPN é típico de bloqueio de conta, expiração de cert ou MFA dessincronizado.",
+    aiKey: "network",
+    attachments: [],
   },
   {
     id: "INC-1002",
-    title: "Phishing reportado por equipe financeira",
-    description: "Email com remetente externo fingindo ser CEO solicitando transferência urgente. 3 usuários receberam.",
+    title: { pt: "Phishing reportado por equipe financeira", en: "Phishing reported by finance team" },
+    description: {
+      pt: "Email externo fingindo ser CEO solicitando transferência. 3 usuários receberam.",
+      en: "External email impersonating CEO requesting transfer. 3 users received.",
+    },
     category: "security",
-    subcategory: "Phishing",
+    subKey: 0,
     priority: "P1",
     status: "in_progress",
     team: "SOC / Security",
     requester: "Lucas Meyer",
     createdAt: Date.now() - 1000 * 60 * 45,
     updatedAt: Date.now() - 1000 * 60 * 10,
-    aiReasoning: "Tentativa de fraude tipo CEO/BEC envolvendo finanças — escalada imediata para SOC.",
+    aiKey: "security",
+    attachments: [{ name: "phishing_screenshot.png", size: 245678 }],
   },
   {
     id: "INC-1003",
-    title: "Solicitar nova licença Adobe Creative Cloud",
-    description: "Novo designer entrando segunda-feira, precisa de licença CC completa.",
-    category: "software",
-    subcategory: "Licença",
-    priority: "P3",
-    status: "new",
-    team: "Application Support",
+    title: { pt: "App Interna A com erro 500 no login", en: "Internal App A with 500 error on login" },
+    description: {
+      pt: "Vários usuários reportam erro 500 ao tentar logar na App Interna A.",
+      en: "Several users report 500 error when trying to log into Internal App A.",
+    },
+    category: "apps_internal",
+    subKey: 1,
+    priority: "P1",
+    status: "in_progress",
+    team: "Internal Apps Support",
     requester: "Sofia Romano",
-    createdAt: Date.now() - 1000 * 60 * 60 * 6,
-    updatedAt: Date.now() - 1000 * 60 * 60 * 6,
-    aiReasoning: "Solicitação padrão de provisionamento de licença para onboarding.",
+    createdAt: Date.now() - 1000 * 60 * 90,
+    updatedAt: Date.now() - 1000 * 60 * 5,
+    aiKey: "apps_internal",
+    attachments: [{ name: "error_log.txt", size: 12450 }],
   },
   {
     id: "INC-1004",
-    title: "Reset de MFA — perdeu o celular",
-    description: "Usuário trocou de aparelho e não conseguiu transferir o app autenticador.",
+    title: { pt: "Reset de MFA — perdeu o celular", en: "MFA reset — lost phone" },
+    description: {
+      pt: "Usuário trocou de aparelho e não conseguiu transferir o autenticador.",
+      en: "User changed devices and could not transfer the authenticator.",
+    },
     category: "iam",
-    subcategory: "MFA",
+    subKey: 1,
     priority: "P3",
     status: "resolved",
     team: "Identity Team",
     requester: "Marco Silva",
     createdAt: Date.now() - 1000 * 60 * 60 * 24,
     updatedAt: Date.now() - 1000 * 60 * 60 * 18,
-    aiReasoning: "Procedimento padrão de reset de MFA com verificação de identidade.",
+    aiKey: "iam",
+    attachments: [],
   },
   {
     id: "INC-1005",
-    title: "Notebook não liga",
-    description: "ThinkPad T14 não responde ao botão de power, LED não acende.",
-    category: "hardware",
-    subcategory: "Notebook",
-    priority: "P2",
+    title: { pt: "Provisionar nova VM em AWS", en: "Provision new AWS VM" },
+    description: {
+      pt: "Time de dados precisa de nova EC2 t3.large para processamento ETL.",
+      en: "Data team needs a new EC2 t3.large for ETL processing.",
+    },
+    category: "cloud",
+    subKey: 0,
+    priority: "P3",
     status: "waiting",
-    team: "Field Support",
+    team: "Cloud Operations",
     requester: "Julia Wagner",
     createdAt: Date.now() - 1000 * 60 * 60 * 8,
     updatedAt: Date.now() - 1000 * 60 * 60 * 2,
-    aiReasoning: "Falha de hardware, precisa diagnóstico físico ou substituição via swap pool.",
+    aiKey: "cloud",
+    attachments: [],
   },
   {
     id: "INC-1006",
-    title: "Erro 500 no portal de RH",
-    description: "Múltiplos usuários relatam erro 500 ao acessar a página de holerites.",
-    category: "apps",
-    subcategory: "ERP / CRM",
-    priority: "P1",
+    title: { pt: "App Interna B lenta no relatório", en: "Internal App B slow on reports" },
+    description: {
+      pt: "Geração de relatórios mensais demora mais de 5 minutos. Antes era instantâneo.",
+      en: "Monthly report generation takes over 5 minutes. Previously instantaneous.",
+    },
+    category: "apps_internal",
+    subKey: 6,
+    priority: "P2",
     status: "in_progress",
-    team: "Application Support",
-    requester: "Multiple users",
-    createdAt: Date.now() - 1000 * 60 * 90,
-    updatedAt: Date.now() - 1000 * 60 * 5,
-    aiReasoning: "Indisponibilidade afetando múltiplos usuários — possível incidente major.",
+    team: "Internal Apps Support",
+    requester: "Pedro Costa",
+    createdAt: Date.now() - 1000 * 60 * 60 * 5,
+    updatedAt: Date.now() - 1000 * 60 * 30,
+    aiKey: "apps_internal",
+    attachments: [],
   },
   {
     id: "INC-1007",
-    title: "Adicionar membro ao grupo SharePoint Marketing",
-    description: "Onboarding de novo gerente de marketing.",
-    category: "iam",
-    subcategory: "Permissões RBAC",
+    title: {
+      pt: "Adicionar permissão IAM em bucket S3",
+      en: "Add IAM permission to S3 bucket",
+    },
+    description: {
+      pt: "Novo membro do time de dados precisa de read/write no bucket de analytics.",
+      en: "New data team member needs read/write on analytics bucket.",
+    },
+    category: "cloud",
+    subKey: 2,
     priority: "P4",
     status: "resolved",
-    team: "Identity Team",
-    requester: "RH",
+    team: "Cloud Operations",
+    requester: "RH / HR",
     createdAt: Date.now() - 1000 * 60 * 60 * 30,
     updatedAt: Date.now() - 1000 * 60 * 60 * 28,
-    aiReasoning: "Solicitação padrão de RBAC, baixa prioridade.",
+    aiKey: "cloud",
+    attachments: [],
   },
 ];
 
-// ============ HELPERS ============
+/* ============================================================
+   HELPERS
+============================================================ */
 
-const formatRelative = (ts) => {
+const formatRelative = (ts, t) => {
   const diff = Date.now() - ts;
   const min = Math.floor(diff / 60000);
-  if (min < 1) return "agora";
-  if (min < 60) return `${min}m atrás`;
+  if (min < 1) return t.common.now;
+  if (min < 60) return `${min}${t.common.mAgo}`;
   const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr}h atrás`;
+  if (hr < 24) return `${hr}${t.common.hAgo}`;
   const days = Math.floor(hr / 24);
-  return `${days}d atrás`;
+  return `${days}${t.common.dAgo}`;
+};
+
+const formatFileSize = (bytes) => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
 const slaStatus = (ticket) => {
@@ -455,68 +1093,44 @@ const slaStatus = (ticket) => {
 
 const newId = () => `INC-${Math.floor(1000 + Math.random() * 9000)}`;
 
-// ============ AI CATEGORIZATION (offline, keyword-based) ============
-//
-// Esta versão standalone usa classificação por palavras-chave para funcionar
-// sem chave de API e sem CORS. Para produção real com IA generativa, faça
-// proxy via uma serverless function (Vercel/Netlify Functions) e troque
-// esta função por uma chamada à sua API.
+const bi = (val, lang) => {
+  if (typeof val === "string") return val;
+  if (val && typeof val === "object") return val[lang] || val.pt || val.en || "";
+  return "";
+};
+
+/* ============================================================
+   AI CATEGORIZATION (offline keyword-based)
+============================================================ */
 
 const KEYWORDS = {
-  security: {
-    terms: ["phishing", "malware", "ransomware", "vírus", "virus", "incidente", "vazamento", "violação", "violacao", "suspeito", "fraude", "ataque", "invasão", "invasao", "comprometido", "spam"],
-    weight: 10,
-  },
-  network: {
-    terms: ["vpn", "wifi", "wi-fi", "rede", "conectividade", "internet", "firewall", "dns", "dhcp", "lentidão", "lentidao", "conexão", "conexao", "ping", "anyconnect", "proxy"],
-    weight: 8,
-  },
-  iam: {
-    terms: ["senha", "password", "mfa", "autenticação", "autenticacao", "login", "acesso", "permissão", "permissao", "grupo", "rbac", "provisionamento", "desprovisionamento", "conta", "ad", "entra", "azure ad"],
-    weight: 8,
-  },
-  hardware: {
-    terms: ["notebook", "laptop", "mouse", "teclado", "monitor", "impressora", "headset", "celular", "mobile", "dock", "thinkpad", "macbook", "tela", "bateria", "carregador", "periférico", "periferico"],
-    weight: 7,
-  },
-  software: {
-    terms: ["licença", "licenca", "instalação", "instalacao", "install", "erro", "bug", "atualização", "atualizacao", "update", "office", "excel", "word", "outlook", "adobe", "visio"],
-    weight: 6,
-  },
-  apps: {
-    terms: ["sharepoint", "teams", "saas", "erp", "crm", "salesforce", "sap", "portal", "aplicação", "aplicacao", "app", "integração", "integracao", "api", "m365", "google workspace"],
-    weight: 6,
-  },
-  telecom: {
-    terms: ["telefone", "telefonia", "ramal", "softphone", "conferência", "conferencia", "zoom", "voip"],
-    weight: 5,
-  },
-  general: {
-    terms: ["dúvida", "duvida", "informação", "informacao", "como faço", "como faco", "onboarding", "treinamento"],
-    weight: 3,
-  },
+  security: ["phishing", "malware", "ransomware", "vírus", "virus", "incidente", "incident", "vazamento", "leak", "violação", "violacao", "violation", "fraude", "fraud", "ataque", "attack", "invasão", "invasao", "breach", "comprometido", "compromised", "spam", "suspicious", "suspeito", "vulnerability", "vulnerabilidade"],
+  cloud: ["aws", "azure", "gcp", "ec2", "s3", "lambda", "kubernetes", "k8s", "eks", "aks", "gke", "terraform", "iac", "cloudwatch", "cloudfront", "rds", "dynamodb", "blob", "storage", "vpc", "subnet", "container", "docker", "helm", "finops", "billing"],
+  apps_internal: ["app interna", "internal app", "checkko", "chekko", "app a", "app b", "aplicação interna", "aplicacao interna"],
+  network: ["vpn", "wifi", "wi-fi", "rede", "network", "conectividade", "connectivity", "internet", "firewall", "dns", "dhcp", "lentidão", "lentidao", "slow", "conexão", "conexao", "connection", "ping", "anyconnect", "proxy"],
+  iam: ["senha", "password", "mfa", "autenticação", "autenticacao", "authentication", "login", "acesso", "access", "permissão", "permissao", "permission", "grupo", "group", "rbac", "provisionamento", "provisioning", "desprovisionamento", "deprovisioning", "conta", "account", "ad ", "entra", "azure ad", "sso", "saml", "oidc"],
+  hardware: ["notebook", "laptop", "mouse", "teclado", "keyboard", "monitor", "impressora", "printer", "headset", "celular", "phone", "dock", "thinkpad", "macbook", "tela", "screen", "bateria", "battery", "carregador", "charger", "periférico", "periferico", "peripheral"],
+  saas: ["m365", "microsoft 365", "office 365", "outlook", "sharepoint", "teams", "google workspace", "salesforce", "sap", "slack", "zoom", "saas"],
+  general: ["dúvida", "duvida", "question", "informação", "informacao", "information", "como faço", "como faco", "how do i", "onboarding", "treinamento", "training"],
 };
 
 const PRIORITY_SIGNALS = {
-  P1: ["múltiplos usuários", "multiplos usuarios", "todos usuários", "todos usuarios", "fora do ar", "down", "inoperante", "produção parada", "producao parada", "crítico", "critico", "incidente", "phishing", "ransomware", "vazamento", "ataque", "ceo", "diretor"],
-  P2: ["bloqueio total", "não consigo trabalhar", "nao consigo trabalhar", "parado", "urgente", "vpn", "mfa", "perdeu", "não liga", "nao liga", "não acessa", "nao acessa"],
-  P3: ["lentidão", "lentidao", "intermitente", "às vezes", "as vezes", "ajuda", "configurar"],
-  P4: ["solicitar", "solicitação", "solicitacao", "novo", "nova", "quero", "preciso de", "gostaria", "dúvida", "duvida", "como faço", "como faco"],
+  P1: ["múltiplos usuários", "multiplos usuarios", "multiple users", "todos usuários", "all users", "fora do ar", "down", "inoperante", "outage", "produção parada", "producao parada", "production down", "crítico", "critico", "critical", "incidente", "incident", "phishing", "ransomware", "vazamento", "leak", "ataque", "attack", "ceo", "diretor", "director", "erro 500", "500 error"],
+  P2: ["bloqueio total", "blocked", "não consigo trabalhar", "nao consigo trabalhar", "cannot work", "parado", "stuck", "urgente", "urgent", "vpn", "mfa", "perdeu", "lost", "não liga", "nao liga", "won't power", "won't turn on", "não acessa", "nao acessa", "cannot access", "lenta", "lento", "slow"],
+  P3: ["intermitente", "intermittent", "às vezes", "as vezes", "sometimes", "ajuda", "help", "configurar", "configure", "provisionar", "provision"],
+  P4: ["solicitar", "solicitação", "solicitacao", "request", "novo", "nova", "new", "quero", "want", "preciso de", "need", "gostaria", "would like", "dúvida", "duvida", "question", "como faço", "como faco", "how do i"],
 };
 
 const categorizeWithAI = async (title, description) => {
-  // Simulate slight async delay so the loading UI feels real
-  await new Promise((r) => setTimeout(r, 600));
-
+  await new Promise((r) => setTimeout(r, 700));
   const text = `${title} ${description}`.toLowerCase();
 
-  // Score each category by keyword matches
   let bestCat = "general";
   let bestScore = 0;
-  for (const [cat, { terms, weight }] of Object.entries(KEYWORDS)) {
+  for (const [cat, terms] of Object.entries(KEYWORDS)) {
     let score = 0;
     for (const term of terms) {
-      if (text.includes(term)) score += weight;
+      if (text.includes(term)) score += 1;
     }
     if (score > bestScore) {
       bestScore = score;
@@ -524,7 +1138,6 @@ const categorizeWithAI = async (title, description) => {
     }
   }
 
-  // Determine priority by signals (P1 > P2 > P3 > P4)
   let priority = "P3";
   for (const [p, signals] of Object.entries(PRIORITY_SIGNALS)) {
     if (signals.some((s) => text.includes(s))) {
@@ -533,123 +1146,245 @@ const categorizeWithAI = async (title, description) => {
     }
   }
 
-  // Security incidents always at least P2
   if (bestCat === "security" && (priority === "P3" || priority === "P4")) {
     priority = "P2";
   }
 
-  // Find best subcategory match
   const cat = CATEGORIES[bestCat];
-  let subcategory = cat.subcategories[0];
-  for (const sub of cat.subcategories) {
-    if (text.includes(sub.toLowerCase().split(" ")[0])) {
-      subcategory = sub;
-      break;
-    }
-  }
-
-  const reasoningMap = {
-    security: "Indicadores de incidente de segurança detectados — escalada prioritária para o SOC.",
-    network: "Problema de conectividade ou infraestrutura de rede identificado.",
-    iam: "Solicitação relacionada a identidade, autenticação ou controle de acesso.",
-    hardware: "Falha ou solicitação de hardware físico identificada.",
-    software: "Questão envolvendo aplicação instalada, licença ou bug.",
-    apps: "Aplicação SaaS ou de negócio impactada.",
-    telecom: "Solicitação relacionada à telefonia corporativa.",
-    general: "Solicitação geral sem categoria técnica específica.",
-  };
+  let subKey = 0;
+  cat.subcategories.pt.forEach((sub, idx) => {
+    const firstWord = sub.toLowerCase().split(" ")[0].replace(/[—,.]/g, "");
+    if (firstWord && text.includes(firstWord)) subKey = idx;
+  });
 
   return {
     category: bestCat,
-    subcategory,
+    subKey,
     priority,
     team: cat.defaultTeam,
-    reasoning: reasoningMap[bestCat],
+    aiKey: bestCat,
   };
 };
 
-// ============ STORAGE (localStorage) ============
+/* ============================================================
+   STORAGE
+============================================================ */
 
-const TICKETS_KEY = "fluxoops-tickets-v1";
+const TICKETS_KEY = "fluxoops-tickets-v3";
+const LANG_KEY = "fluxoops-lang";
 
-const loadTickets = async () => {
+const loadTickets = () => {
   try {
     const raw = localStorage.getItem(TICKETS_KEY);
     if (raw) return JSON.parse(raw);
-  } catch (e) {
-    console.error("Load failed:", e);
-  }
+  } catch (e) {}
   return SEED_TICKETS;
 };
-
-const saveTickets = async (tickets) => {
+const saveTickets = (tickets) => {
   try {
     localStorage.setItem(TICKETS_KEY, JSON.stringify(tickets));
-  } catch (e) {
-    console.error("Save failed:", e);
-  }
+  } catch (e) {}
+};
+const loadLang = () => {
+  try {
+    const v = localStorage.getItem(LANG_KEY);
+    if (v === "pt" || v === "en") return v;
+  } catch (e) {}
+  return "pt";
+};
+const saveLang = (lang) => {
+  try {
+    localStorage.setItem(LANG_KEY, lang);
+  } catch (e) {}
 };
 
-// ============ UI PRIMITIVES ============
+/* ============================================================
+   UI PRIMITIVES
+============================================================ */
 
-const Badge = ({ color, children, dot = true }) => (
+const Pill = ({ color, bg, children, className = "" }) => (
   <span
-    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-mono uppercase tracking-wider"
+    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium ${className}`}
     style={{
-      backgroundColor: `${color}15`,
+      backgroundColor: bg || `${color}15`,
       color: color,
-      border: `1px solid ${color}30`,
+      border: `1px solid ${color}40`,
     }}
   >
-    {dot && <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />}
     {children}
   </span>
 );
 
-const Card = ({ children, className = "" }) => (
-  <div className={`bg-[#0f1320] border border-[#1f2438] rounded-lg ${className}`}>{children}</div>
+const Card = ({ children, className = "", style = {} }) => (
+  <div
+    className={`rounded-2xl ${className}`}
+    style={{ backgroundColor: T.surface, border: `1px solid ${T.border}`, ...style }}
+  >
+    {children}
+  </div>
 );
 
-// ============ DASHBOARD ============
+const Eyebrow = ({ children }) => (
+  <div className="flex items-center gap-2 mb-2">
+    <span className="block w-7 h-0.5 rounded-sm" style={{ backgroundColor: T.pink }} />
+    <span
+      className="text-[11px] font-semibold uppercase tracking-[0.15em]"
+      style={{ color: T.pinkDark }}
+    >
+      {children}
+    </span>
+  </div>
+);
 
-const Dashboard = ({ tickets }) => {
+const PageTitle = ({ eyebrow, title, accent }) => (
+  <div className="mb-6">
+    <Eyebrow>{eyebrow}</Eyebrow>
+    <h1
+      className="text-4xl md:text-5xl leading-[1.1]"
+      style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}
+    >
+      {accent ? (
+        <>
+          {title}{" "}
+          <em style={{ color: T.pinkDark, fontStyle: "italic" }}>{accent}</em>
+        </>
+      ) : (
+        title
+      )}
+    </h1>
+  </div>
+);
+
+const Field = ({ label, hint, children }) => (
+  <div>
+    <label
+      className="block text-[11px] font-semibold uppercase tracking-wider mb-2"
+      style={{ color: T.textMid }}
+    >
+      {label}
+    </label>
+    {children}
+    {hint && (
+      <div className="text-xs mt-1.5" style={{ color: T.textLight }}>
+        {hint}
+      </div>
+    )}
+  </div>
+);
+
+const inputStyle = {
+  backgroundColor: T.surface,
+  border: `1.5px solid ${T.border}`,
+  color: T.text,
+  fontFamily: "DM Sans",
+};
+
+/* ============================================================
+   ATTACHMENT INPUT
+============================================================ */
+
+const AttachmentInput = ({ files, onChange, t }) => {
+  const inputRef = useRef(null);
+
+  const handleFiles = (e) => {
+    const newFiles = Array.from(e.target.files).map((f) => ({
+      name: f.name,
+      size: f.size,
+    }));
+    onChange([...files, ...newFiles]);
+    e.target.value = "";
+  };
+
+  const removeFile = (idx) => {
+    onChange(files.filter((_, i) => i !== idx));
+  };
+
+  return (
+    <div>
+      <input
+        ref={inputRef}
+        type="file"
+        multiple
+        onChange={handleFiles}
+        style={{ display: "none" }}
+      />
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+        style={{
+          backgroundColor: T.surface,
+          border: `1.5px dashed ${T.border}`,
+          color: T.textMid,
+        }}
+      >
+        <Paperclip size={14} />
+        {t.common.addAttachment}
+      </button>
+
+      {files.length > 0 && (
+        <div className="space-y-2 mt-3">
+          {files.map((f, idx) => (
+            <div
+              key={idx}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+              style={{ backgroundColor: T.bg2, border: `1px solid ${T.border}` }}
+            >
+              <FileText size={14} style={{ color: T.textMid, flexShrink: 0 }} />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm truncate" style={{ color: T.text }}>
+                  {f.name}
+                </div>
+                <div className="text-xs" style={{ color: T.textLight }}>
+                  {formatFileSize(f.size)}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => removeFile(idx)}
+                className="text-xs font-medium px-2 py-1 rounded-md"
+                style={{ color: T.pinkDark }}
+              >
+                {t.common.removeAttachment}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ============================================================
+   DASHBOARD
+============================================================ */
+
+const Dashboard = ({ tickets, lang }) => {
+  const t = i18n[lang];
+
   const stats = useMemo(() => {
-    const open = tickets.filter((t) => t.status !== "resolved" && t.status !== "closed");
-    const breached = open.filter((t) => slaStatus(t).state === "breach").length;
-    const atRisk = open.filter((t) => slaStatus(t).state === "risk").length;
-    const p1 = open.filter((t) => t.priority === "P1").length;
+    const open = tickets.filter((x) => x.status !== "resolved" && x.status !== "closed");
+    const breached = open.filter((x) => slaStatus(x).state === "breach").length;
+    const atRisk = open.filter((x) => slaStatus(x).state === "risk").length;
+    const p1 = open.filter((x) => x.priority === "P1").length;
     const resolvedToday = tickets.filter(
-      (t) => t.status === "resolved" && Date.now() - t.updatedAt < 86400000
+      (x) => x.status === "resolved" && Date.now() - x.updatedAt < 86400000
     ).length;
-
-    const resolvedTickets = tickets.filter((t) => t.status === "resolved");
+    const resolvedTickets = tickets.filter((x) => x.status === "resolved");
     const avgMTTR =
       resolvedTickets.length > 0
-        ? resolvedTickets.reduce((sum, t) => sum + (t.updatedAt - t.createdAt), 0) /
+        ? resolvedTickets.reduce((s, x) => s + (x.updatedAt - x.createdAt), 0) /
           resolvedTickets.length /
           3600000
         : 0;
-
     return { totalOpen: open.length, breached, atRisk, p1, resolvedToday, avgMTTR };
-  }, [tickets]);
-
-  const byCategory = useMemo(() => {
-    const map = {};
-    tickets.forEach((t) => {
-      map[t.category] = (map[t.category] || 0) + 1;
-    });
-    return Object.entries(map).map(([k, v]) => ({
-      name: CATEGORIES[k]?.label || k,
-      value: v,
-      color: CATEGORIES[k]?.accent || "#7a8499",
-    }));
   }, [tickets]);
 
   const byPriority = useMemo(() => {
     const map = { P1: 0, P2: 0, P3: 0, P4: 0 };
     tickets
-      .filter((t) => t.status !== "resolved" && t.status !== "closed")
-      .forEach((t) => (map[t.priority] = (map[t.priority] || 0) + 1));
+      .filter((x) => x.status !== "resolved" && x.status !== "closed")
+      .forEach((x) => (map[x.priority] = (map[x.priority] || 0) + 1));
     return Object.entries(map).map(([k, v]) => ({
       name: k,
       value: v,
@@ -663,109 +1398,120 @@ const Dashboard = ({ tickets }) => {
     for (let i = days - 1; i >= 0; i--) {
       const dayStart = Date.now() - i * 86400000;
       const dayEnd = dayStart + 86400000;
-      const created = tickets.filter((t) => t.createdAt >= dayStart - 86400000 && t.createdAt < dayEnd).length;
+      const created = tickets.filter(
+        (x) => x.createdAt >= dayStart - 86400000 && x.createdAt < dayEnd
+      ).length;
       const resolved = tickets.filter(
-        (t) =>
-          t.status === "resolved" && t.updatedAt >= dayStart - 86400000 && t.updatedAt < dayEnd
+        (x) =>
+          x.status === "resolved" &&
+          x.updatedAt >= dayStart - 86400000 &&
+          x.updatedAt < dayEnd
       ).length;
       const d = new Date(dayStart);
       result.push({
         day: `${d.getDate()}/${d.getMonth() + 1}`,
-        Abertos: created,
-        Resolvidos: resolved,
+        [t.dashboard.chartOpened]: created,
+        [t.dashboard.chartResolved]: resolved,
       });
     }
     return result;
-  }, [tickets]);
+  }, [tickets, lang]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#8b94a3] mb-1">
-          Operations Center
-        </div>
-        <h1 className="text-3xl font-display text-white">Dashboard</h1>
-      </div>
+    <div>
+      <PageTitle eyebrow={t.dashboard.eyebrow} title={t.dashboard.title} />
 
-      {/* KPI cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard
           icon={Activity}
-          label="Tickets abertos"
+          label={t.dashboard.kpiOpen}
           value={stats.totalOpen}
-          accent="#4a9eff"
-          sub={`${stats.resolvedToday} resolvidos hoje`}
+          accent={T.blueDark}
+          bg={T.blueLight}
+          sub={t.dashboard.resolvedToday(stats.resolvedToday)}
         />
         <KpiCard
           icon={Flame}
-          label="Críticos (P1)"
+          label={t.dashboard.kpiCritical}
           value={stats.p1}
-          accent="#ff3b5c"
-          sub="Resposta máx. 15min"
+          accent={T.pinkDark}
+          bg={T.pinkLight}
+          sub={t.dashboard.maxResponse}
         />
         <KpiCard
           icon={AlertTriangle}
-          label="SLA em risco"
+          label={t.dashboard.kpiSlaRisk}
           value={stats.atRisk + stats.breached}
-          accent="#f5a623"
-          sub={`${stats.breached} já estouraram`}
+          accent={T.yellowDark}
+          bg={T.yellowLight}
+          sub={t.dashboard.breached(stats.breached)}
         />
         <KpiCard
           icon={Clock}
-          label="MTTR médio"
+          label={t.dashboard.kpiMttr}
           value={stats.avgMTTR.toFixed(1)}
           unit="h"
-          accent="#00d4aa"
-          sub="Últimos resolvidos"
+          accent={T.greenDark}
+          bg={T.greenLight}
+          sub={t.dashboard.lastResolved}
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Trend chart */}
-        <Card className="lg:col-span-2 p-5">
-          <div className="flex items-center justify-between mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <Card className="lg:col-span-2 p-6">
+          <div className="flex items-start justify-between mb-5">
             <div>
-              <div className="text-[11px] font-mono uppercase tracking-wider text-[#8b94a3]">
-                Volume diário
-              </div>
-              <h3 className="text-lg text-white font-display">Tickets abertos vs resolvidos</h3>
+              <Eyebrow>{t.dashboard.dailyVolumeEyebrow}</Eyebrow>
+              <h3
+                className="text-xl"
+                style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}
+              >
+                {t.dashboard.dailyVolumeTitle}
+              </h3>
             </div>
-            <Badge color="#00d4aa">7 dias</Badge>
+            <Pill color={T.greenDark} bg={T.greenLight}>
+              {t.dashboard.sevenDays}
+            </Pill>
           </div>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={trend}>
               <defs>
                 <linearGradient id="gradOpen" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#4a9eff" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#4a9eff" stopOpacity={0} />
+                  <stop offset="0%" stopColor={T.pinkDark} stopOpacity={0.3} />
+                  <stop offset="100%" stopColor={T.pinkDark} stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="gradRes" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#00d4aa" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#00d4aa" stopOpacity={0} />
+                  <stop offset="0%" stopColor={T.greenDark} stopOpacity={0.3} />
+                  <stop offset="100%" stopColor={T.greenDark} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2438" />
-              <XAxis dataKey="day" stroke="#8b94a3" tick={{ fontSize: 11, fontFamily: "monospace" }} />
-              <YAxis stroke="#8b94a3" tick={{ fontSize: 11, fontFamily: "monospace" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={T.border} />
+              <XAxis
+                dataKey="day"
+                stroke={T.textLight}
+                tick={{ fontSize: 11, fontFamily: "DM Sans" }}
+              />
+              <YAxis stroke={T.textLight} tick={{ fontSize: 11, fontFamily: "DM Sans" }} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#0a0e1a",
-                  border: "1px solid #1f2438",
-                  borderRadius: "6px",
+                  backgroundColor: T.surface,
+                  border: `1px solid ${T.border}`,
+                  borderRadius: "10px",
                   fontSize: "12px",
+                  fontFamily: "DM Sans",
                 }}
               />
               <Area
                 type="monotone"
-                dataKey="Abertos"
-                stroke="#4a9eff"
+                dataKey={t.dashboard.chartOpened}
+                stroke={T.pinkDark}
                 fill="url(#gradOpen)"
                 strokeWidth={2}
               />
               <Area
                 type="monotone"
-                dataKey="Resolvidos"
-                stroke="#00d4aa"
+                dataKey={t.dashboard.chartResolved}
+                stroke={T.greenDark}
                 fill="url(#gradRes)"
                 strokeWidth={2}
               />
@@ -773,25 +1519,34 @@ const Dashboard = ({ tickets }) => {
           </ResponsiveContainer>
         </Card>
 
-        {/* Priority breakdown */}
-        <Card className="p-5">
-          <div className="text-[11px] font-mono uppercase tracking-wider text-[#8b94a3]">
-            Distribuição
-          </div>
-          <h3 className="text-lg text-white font-display mb-4">Por prioridade</h3>
-          <div className="space-y-3">
+        <Card className="p-6">
+          <Eyebrow>{t.dashboard.distributionEyebrow}</Eyebrow>
+          <h3
+            className="text-xl mb-5"
+            style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}
+          >
+            {t.dashboard.distributionTitle}
+          </h3>
+          <div className="space-y-4">
             {byPriority.map((p) => {
               const total = byPriority.reduce((s, x) => s + x.value, 0) || 1;
               const pct = (p.value / total) * 100;
               return (
                 <div key={p.name}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-sm text-white font-mono">{p.name}</span>
-                    <span className="text-sm text-[#8b94a3] font-mono">{p.value}</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium" style={{ color: T.text }}>
+                      {p.name}
+                    </span>
+                    <span className="text-sm tabular-nums" style={{ color: T.textMid }}>
+                      {p.value}
+                    </span>
                   </div>
-                  <div className="h-1.5 bg-[#1f2438] rounded-full overflow-hidden">
+                  <div
+                    className="h-2 rounded-full overflow-hidden"
+                    style={{ backgroundColor: T.bg2 }}
+                  >
                     <div
-                      className="h-full transition-all duration-500"
+                      className="h-full transition-all duration-500 rounded-full"
                       style={{ width: `${pct}%`, backgroundColor: p.color }}
                     />
                   </div>
@@ -802,29 +1557,39 @@ const Dashboard = ({ tickets }) => {
         </Card>
       </div>
 
-      {/* Category breakdown */}
-      <Card className="p-5">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <div className="text-[11px] font-mono uppercase tracking-wider text-[#8b94a3]">
-              Service Catalog
-            </div>
-            <h3 className="text-lg text-white font-display">Tickets por categoria</h3>
-          </div>
-        </div>
+      <Card className="p-6">
+        <Eyebrow>{t.dashboard.catalogEyebrow}</Eyebrow>
+        <h3
+          className="text-xl mb-5"
+          style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}
+        >
+          {t.dashboard.catalogTitle}
+        </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
           {Object.entries(CATEGORIES).map(([key, cat]) => {
             const Icon = cat.icon;
-            const count = tickets.filter((t) => t.category === key).length;
+            const count = tickets.filter((x) => x.category === key).length;
             return (
               <div
                 key={key}
-                className="bg-[#0a0e1a] border border-[#1f2438] rounded p-3 hover:border-[#2d3554] transition-colors"
+                className="rounded-xl p-3 transition-all hover:translate-y-[-2px]"
+                style={{
+                  backgroundColor: cat.bg,
+                  border: `1px solid ${cat.accent}30`,
+                }}
               >
                 <Icon size={18} style={{ color: cat.accent }} />
-                <div className="text-xl text-white font-mono mt-2">{count}</div>
-                <div className="text-[10px] text-[#8b94a3] uppercase tracking-wider mt-0.5 leading-tight">
-                  {cat.label}
+                <div
+                  className="text-2xl mt-2 tabular-nums"
+                  style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}
+                >
+                  {count}
+                </div>
+                <div
+                  className="text-[10px] uppercase tracking-wider mt-0.5 leading-tight font-semibold"
+                  style={{ color: cat.accent }}
+                >
+                  {t.categories[key]}
                 </div>
               </div>
             );
@@ -835,43 +1600,107 @@ const Dashboard = ({ tickets }) => {
   );
 };
 
-const KpiCard = ({ icon: Icon, label, value, unit, accent, sub }) => (
-  <Card className="p-5 relative overflow-hidden group">
+const KpiCard = ({ icon: Icon, label, value, unit, accent, bg, sub }) => (
+  <Card className="p-5 relative overflow-hidden">
     <div
-      className="absolute top-0 right-0 w-24 h-24 rounded-full blur-3xl opacity-20 group-hover:opacity-30 transition-opacity"
-      style={{ backgroundColor: accent }}
+      className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-30 -translate-y-1/2 translate-x-1/3"
+      style={{ backgroundColor: bg }}
     />
     <div className="relative">
       <div className="flex items-center justify-between mb-3">
-        <div className="text-[11px] font-mono uppercase tracking-wider text-[#8b94a3]">{label}</div>
-        <Icon size={16} style={{ color: accent }} />
+        <span
+          className="text-[11px] font-semibold uppercase tracking-wider"
+          style={{ color: T.textMid }}
+        >
+          {label}
+        </span>
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center"
+          style={{ backgroundColor: bg }}
+        >
+          <Icon size={15} style={{ color: accent }} />
+        </div>
       </div>
       <div className="flex items-baseline gap-1">
-        <span className="text-3xl text-white font-display tabular-nums">{value}</span>
-        {unit && <span className="text-sm text-[#8b94a3] font-mono">{unit}</span>}
+        <span
+          className="text-4xl tabular-nums"
+          style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}
+        >
+          {value}
+        </span>
+        {unit && (
+          <span className="text-sm" style={{ color: T.textMid }}>
+            {unit}
+          </span>
+        )}
       </div>
-      <div className="text-xs text-[#8b94a3] mt-1">{sub}</div>
+      <div className="text-xs mt-1" style={{ color: T.textLight }}>
+        {sub}
+      </div>
     </div>
   </Card>
 );
 
-// ============ SERVICE CATALOG VIEW ============
+/* ============================================================
+   MODAL
+============================================================ */
 
-const ServiceCatalog = ({ onRequest }) => {
+const Modal = ({ children, onClose }) => (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    style={{ backgroundColor: "rgba(44,40,37,0.5)", backdropFilter: "blur(4px)" }}
+    onClick={onClose}
+  >
+    <div
+      className="rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+      style={{ backgroundColor: T.surface, border: `1px solid ${T.border}` }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {children}
+    </div>
+  </div>
+);
+
+/* ============================================================
+   SERVICE CATALOG VIEW
+============================================================ */
+
+const CategoryChip = ({ active, onClick, color, bg, children }) => (
+  <button
+    onClick={onClick}
+    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all"
+    style={{
+      backgroundColor: active ? bg : "transparent",
+      borderColor: active ? color : T.border,
+      borderWidth: 1.5,
+      borderStyle: "solid",
+      color: active ? color : T.textMid,
+    }}
+  >
+    {children}
+  </button>
+);
+
+const ServiceCatalogView = ({ onRequest, lang }) => {
+  const t = i18n[lang];
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [requesting, setRequesting] = useState(null);
   const [requesterName, setRequesterName] = useState("");
   const [extraNotes, setExtraNotes] = useState("");
+  const [attachments, setAttachments] = useState([]);
 
   const filtered = useMemo(() => {
     return SERVICE_CATALOG.filter((s) => {
       if (activeCategory !== "all" && s.category !== activeCategory) return false;
       if (!search) return true;
       const q = search.toLowerCase();
-      return s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q);
+      return (
+        bi(s.name, lang).toLowerCase().includes(q) ||
+        bi(s.desc, lang).toLowerCase().includes(q)
+      );
     });
-  }, [search, activeCategory]);
+  }, [search, activeCategory, lang]);
 
   const submitRequest = () => {
     if (!requesting || !requesterName) return;
@@ -880,48 +1709,51 @@ const ServiceCatalog = ({ onRequest }) => {
       id: newId(),
       title: requesting.name,
       description: extraNotes
-        ? `${requesting.description}\n\nObservações: ${extraNotes}`
-        : requesting.description,
+        ? {
+            pt: `${requesting.desc.pt}\n\nObservações: ${extraNotes}`,
+            en: `${requesting.desc.en}\n\nNotes: ${extraNotes}`,
+          }
+        : requesting.desc,
       category: requesting.category,
-      subcategory: requesting.subcategory,
+      subKey: requesting.subKey,
       priority: requesting.defaultPriority,
       status: "new",
-      team: cat?.defaultTeam || "Service Desk N1",
+      team: cat.defaultTeam,
       requester: requesterName,
       createdAt: Date.now(),
       updatedAt: Date.now(),
-      aiReasoning: `Solicitação aberta via Catálogo de Serviços (${requesting.id}). Item padronizado, fluxo automatizado.`,
-      fromCatalog: requesting.id,
+      aiKey: "catalog",
+      catalogId: requesting.id,
+      attachments,
     };
     onRequest(ticket);
     setRequesting(null);
     setRequesterName("");
     setExtraNotes("");
+    setAttachments([]);
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#8b94a3] mb-1">
-          Self-service portal
-        </div>
-        <h1 className="text-3xl font-display text-white">Catálogo de Serviços</h1>
-        <p className="text-sm text-[#8b94a3] mt-2 max-w-2xl">
-          Itens padronizados que o time de TI oferece. Solicitações pelo catálogo seguem
-          fluxo pré-aprovado e SLAs definidos — reduzem tempo de triagem e padronizam o atendimento.
-        </p>
-      </div>
+    <div>
+      <PageTitle eyebrow={t.catalog.eyebrow} title={t.catalog.title} />
+      <p className="text-base max-w-2xl mb-8" style={{ color: T.textMid, lineHeight: 1.6 }}>
+        {t.catalog.desc}
+      </p>
 
-      {/* Search + categories */}
-      <div className="space-y-3">
+      <div className="space-y-3 mb-8">
         <div className="relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8b94a3]" />
+          <Search
+            size={16}
+            className="absolute left-4 top-1/2 -translate-y-1/2"
+            style={{ color: T.textLight }}
+          />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="O que você precisa? Ex: notebook, VPN, licença..."
-            className="w-full bg-[#0f1320] border border-[#1f2438] text-white pl-10 pr-4 py-3 rounded-lg text-sm placeholder:text-[#5a6378] focus:outline-none focus:border-[#4a9eff]"
+            placeholder={t.catalog.searchPh}
+            className="w-full pl-11 pr-4 py-3 rounded-full text-sm focus:outline-none transition-colors"
+            style={inputStyle}
           />
         </div>
 
@@ -929,9 +1761,10 @@ const ServiceCatalog = ({ onRequest }) => {
           <CategoryChip
             active={activeCategory === "all"}
             onClick={() => setActiveCategory("all")}
-            color="#4a9eff"
+            color={T.pinkDark}
+            bg={T.pinkLight}
           >
-            Todos ({SERVICE_CATALOG.length})
+            {t.catalog.all} ({SERVICE_CATALOG.length})
           </CategoryChip>
           {Object.entries(CATEGORIES).map(([key, cat]) => {
             const count = SERVICE_CATALOG.filter((s) => s.category === key).length;
@@ -943,63 +1776,72 @@ const ServiceCatalog = ({ onRequest }) => {
                 active={activeCategory === key}
                 onClick={() => setActiveCategory(key)}
                 color={cat.accent}
+                bg={cat.bg}
               >
                 <Icon size={12} />
-                {cat.label} ({count})
+                {t.categories[key]} ({count})
               </CategoryChip>
             );
           })}
         </div>
       </div>
 
-      {/* Service items grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((svc) => {
           const cat = CATEGORIES[svc.category];
-          const Icon = cat?.icon || Ticket;
+          const Icon = cat.icon;
           return (
-            <Card
-              key={svc.id}
-              className="p-5 hover:border-[#2d3554] transition-all group cursor-pointer"
-            >
-              <div className="flex items-start justify-between mb-3">
+            <Card key={svc.id} className="p-5 transition-all hover:shadow-lg group">
+              <div className="flex items-start justify-between mb-4">
                 <div
-                  className="w-10 h-10 rounded flex items-center justify-center"
-                  style={{ backgroundColor: `${cat.accent}15`, border: `1px solid ${cat.accent}30` }}
+                  className="w-11 h-11 rounded-xl flex items-center justify-center"
+                  style={{ backgroundColor: cat.bg, border: `1px solid ${cat.accent}30` }}
                 >
-                  <Icon size={18} style={{ color: cat.accent }} />
+                  <Icon size={20} style={{ color: cat.accent }} />
                 </div>
-                <Badge color={PRIORITIES[svc.defaultPriority].color}>
+                <Pill color={PRIORITIES[svc.defaultPriority].color}>
                   {svc.defaultPriority}
-                </Badge>
+                </Pill>
               </div>
 
-              <h3 className="text-white font-display text-base mb-1.5 leading-tight">
-                {svc.name}
+              <h3
+                className="text-lg leading-tight mb-2"
+                style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}
+              >
+                {bi(svc.name, lang)}
               </h3>
-              <p className="text-xs text-[#8b94a3] leading-relaxed mb-4 line-clamp-2 min-h-[2.5rem]">
-                {svc.description}
+              <p
+                className="text-sm leading-relaxed mb-4 min-h-[3rem]"
+                style={{ color: T.textMid }}
+              >
+                {bi(svc.desc, lang)}
               </p>
 
-              <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-[#5a6378] mb-4 pb-4 border-b border-[#1f2438]">
+              <div
+                className="flex items-center justify-between text-xs mb-4 pb-4"
+                style={{ color: T.textLight, borderBottom: `1px solid ${T.border}` }}
+              >
                 <div className="flex items-center gap-1.5">
-                  <Clock size={11} />
-                  {svc.estimatedTime}
+                  <Clock size={12} />
+                  <span className="font-medium">{bi(svc.estimatedTime, lang)}</span>
                 </div>
                 {svc.approval && (
-                  <div className="flex items-center gap-1.5 text-[#a78bfa]">
-                    <Lock size={11} />
-                    Aprovação
+                  <div className="flex items-center gap-1.5" style={{ color: T.pinkDark }}>
+                    <Lock size={12} />
+                    <span className="font-medium">{t.catalog.approval}</span>
                   </div>
                 )}
               </div>
 
               <button
                 onClick={() => setRequesting(svc)}
-                className="w-full flex items-center justify-center gap-2 bg-[#1f2438] hover:bg-[#4a9eff] hover:text-white text-[#c8cdd9] text-xs font-mono uppercase tracking-wider py-2.5 rounded transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-semibold transition-all group-hover:translate-y-[-1px]"
+                style={{ backgroundColor: T.text, color: "#fff" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = T.pinkDark)}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = T.text)}
               >
-                Solicitar
-                <ArrowUpRight size={12} />
+                {t.catalog.requestBtn}
+                <ArrowUpRight size={14} />
               </button>
             </Card>
           );
@@ -1007,145 +1849,137 @@ const ServiceCatalog = ({ onRequest }) => {
       </div>
 
       {filtered.length === 0 && (
-        <div className="p-12 text-center text-[#8b94a3] text-sm">
-          Nenhum serviço encontrado. Tente outra busca ou abra um ticket geral.
+        <div className="p-12 text-center" style={{ color: T.textMid }}>
+          {t.catalog.empty}
         </div>
       )}
 
-      {/* Request modal */}
       {requesting && (
-        <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setRequesting(null)}
-        >
-          <div
-            className="bg-[#0f1320] border border-[#1f2438] rounded-xl max-w-lg w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-6 border-b border-[#1f2438] flex items-start justify-between">
-              <div>
-                <div className="text-[10px] font-mono uppercase tracking-wider text-[#8b94a3] mb-1">
-                  Confirmar solicitação
-                </div>
-                <h3 className="text-lg font-display text-white">{requesting.name}</h3>
-              </div>
-              <button onClick={() => setRequesting(null)} className="text-[#8b94a3] hover:text-white">
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4">
-              <p className="text-sm text-[#c8cdd9]">{requesting.description}</p>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-[#0a0e1a] border border-[#1f2438] rounded p-3">
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-[#5a6378]">
-                    Prioridade
-                  </div>
-                  <div className="mt-1.5">
-                    <Badge color={PRIORITIES[requesting.defaultPriority].color}>
-                      {PRIORITIES[requesting.defaultPriority].label}
-                    </Badge>
-                  </div>
-                </div>
-                <div className="bg-[#0a0e1a] border border-[#1f2438] rounded p-3">
-                  <div className="text-[10px] font-mono uppercase tracking-wider text-[#5a6378]">
-                    Tempo estimado
-                  </div>
-                  <div className="mt-1.5 text-sm text-white font-mono">
-                    {requesting.estimatedTime}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-mono uppercase tracking-wider text-[#8b94a3]">
-                  Solicitante *
-                </label>
-                <input
-                  type="text"
-                  value={requesterName}
-                  onChange={(e) => setRequesterName(e.target.value)}
-                  placeholder="Seu nome"
-                  className="w-full mt-1.5 bg-[#0a0e1a] border border-[#1f2438] text-white px-3 py-2 rounded text-sm focus:outline-none focus:border-[#4a9eff]"
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] font-mono uppercase tracking-wider text-[#8b94a3]">
-                  Observações (opcional)
-                </label>
-                <textarea
-                  value={extraNotes}
-                  onChange={(e) => setExtraNotes(e.target.value)}
-                  rows={3}
-                  placeholder="Detalhes adicionais, urgência, contexto..."
-                  className="w-full mt-1.5 bg-[#0a0e1a] border border-[#1f2438] text-white px-3 py-2 rounded text-sm focus:outline-none focus:border-[#4a9eff] resize-none"
-                />
-              </div>
-
-              {requesting.approval && (
-                <div className="flex items-start gap-2 bg-[#a78bfa]/10 border border-[#a78bfa]/30 rounded p-3">
-                  <Lock size={14} className="text-[#a78bfa] mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-[#c8cdd9]">
-                    Esse serviço requer aprovação. O ticket será criado em status "Novo" e
-                    aguardará validação do gestor antes da execução.
-                  </div>
-                </div>
-              )}
-
-              <button
-                onClick={submitRequest}
-                disabled={!requesterName}
-                className="w-full flex items-center justify-center gap-2 bg-[#00d4aa] text-[#0a0e1a] font-mono uppercase tracking-wider text-xs py-3 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#00b894] transition-colors"
-              >
-                <Send size={14} />
-                Abrir solicitação
-              </button>
-            </div>
+        <Modal onClose={() => setRequesting(null)}>
+          <div className="p-6" style={{ borderBottom: `1px solid ${T.border}` }}>
+            <Eyebrow>{t.catalog.modalEyebrow}</Eyebrow>
+            <h3
+              className="text-2xl"
+              style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}
+            >
+              {bi(requesting.name, lang)}
+            </h3>
           </div>
-        </div>
+          <div className="p-6 space-y-5">
+            <p className="text-sm leading-relaxed" style={{ color: T.textMid }}>
+              {bi(requesting.desc, lang)}
+            </p>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div
+                className="rounded-xl p-4"
+                style={{ backgroundColor: T.bg2, border: `1px solid ${T.border}` }}
+              >
+                <div
+                  className="text-[10px] font-semibold uppercase tracking-wider mb-1.5"
+                  style={{ color: T.textLight }}
+                >
+                  {t.newTicket.priority}
+                </div>
+                <Pill color={PRIORITIES[requesting.defaultPriority].color}>
+                  {t.priorities[requesting.defaultPriority]}
+                </Pill>
+              </div>
+              <div
+                className="rounded-xl p-4"
+                style={{ backgroundColor: T.bg2, border: `1px solid ${T.border}` }}
+              >
+                <div
+                  className="text-[10px] font-semibold uppercase tracking-wider mb-1.5"
+                  style={{ color: T.textLight }}
+                >
+                  {t.catalog.modalEstTime}
+                </div>
+                <div className="text-sm font-medium" style={{ color: T.text }}>
+                  {bi(requesting.estimatedTime, lang)}
+                </div>
+              </div>
+            </div>
+
+            <Field label={`${t.common.requester} *`}>
+              <input
+                type="text"
+                value={requesterName}
+                onChange={(e) => setRequesterName(e.target.value)}
+                placeholder={t.newTicket.requesterPh}
+                className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none"
+                style={inputStyle}
+              />
+            </Field>
+
+            <Field label={t.catalog.modalNotes}>
+              <textarea
+                value={extraNotes}
+                onChange={(e) => setExtraNotes(e.target.value)}
+                rows={3}
+                placeholder={t.catalog.modalNotesPh}
+                className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none resize-none"
+                style={inputStyle}
+              />
+            </Field>
+
+            <Field label={t.common.attachments}>
+              <AttachmentInput files={attachments} onChange={setAttachments} t={t} />
+            </Field>
+
+            {requesting.approval && (
+              <div
+                className="flex items-start gap-3 rounded-xl p-4"
+                style={{ backgroundColor: T.pinkLight, border: `1px solid ${T.pink}` }}
+              >
+                <Lock size={16} style={{ color: T.pinkDark, flexShrink: 0, marginTop: 2 }} />
+                <div className="text-sm leading-relaxed" style={{ color: T.pinkDark }}>
+                  {t.catalog.modalApproval}
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={submitRequest}
+              disabled={!requesterName}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-full text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ backgroundColor: T.pinkDark, color: "#fff" }}
+            >
+              <Send size={14} />
+              {t.catalog.modalSubmit}
+            </button>
+          </div>
+        </Modal>
       )}
     </div>
   );
 };
 
-const CategoryChip = ({ active, onClick, color, children }) => (
-  <button
-    onClick={onClick}
-    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all border"
-    style={{
-      backgroundColor: active ? `${color}20` : "transparent",
-      borderColor: active ? color : "#1f2438",
-      color: active ? color : "#8b94a3",
-    }}
-  >
-    {children}
-  </button>
-);
+/* ============================================================
+   TICKET LIST
+============================================================ */
 
-// ============ TICKET LIST ============
-
-const TicketList = ({ tickets, onSelect }) => {
+const TicketList = ({ tickets, onSelect, lang }) => {
+  const t = i18n[lang];
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
     return tickets
-      .filter((t) => {
+      .filter((x) => {
         if (filter === "all") return true;
-        if (filter === "open") return t.status !== "resolved" && t.status !== "closed";
-        if (filter === "p1") return t.priority === "P1";
-        if (filter === "breach") return slaStatus(t).state === "breach";
+        if (filter === "open") return x.status !== "resolved" && x.status !== "closed";
+        if (filter === "p1") return x.priority === "P1";
+        if (filter === "breach") return slaStatus(x).state === "breach";
         return true;
       })
-      .filter((t) => {
+      .filter((x) => {
         if (!search) return true;
         const s = search.toLowerCase();
         return (
-          t.title.toLowerCase().includes(s) ||
-          t.id.toLowerCase().includes(s) ||
-          t.description.toLowerCase().includes(s)
+          bi(x.title, lang).toLowerCase().includes(s) ||
+          x.id.toLowerCase().includes(s) ||
+          bi(x.description, lang).toLowerCase().includes(s)
         );
       })
       .sort((a, b) => {
@@ -1154,43 +1988,46 @@ const TicketList = ({ tickets, onSelect }) => {
         if (wa !== wb) return wb - wa;
         return b.createdAt - a.createdAt;
       });
-  }, [tickets, filter, search]);
+  }, [tickets, filter, search, lang]);
 
   return (
-    <div className="space-y-5">
-      <div>
-        <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#8b94a3] mb-1">
-          Service Desk
-        </div>
-        <h1 className="text-3xl font-display text-white">Tickets</h1>
-      </div>
+    <div>
+      <PageTitle eyebrow={t.tickets.eyebrow} title={t.tickets.title} />
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8b94a3]" />
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <div className="relative flex-1 min-w-[260px]">
+          <Search
+            size={16}
+            className="absolute left-4 top-1/2 -translate-y-1/2"
+            style={{ color: T.textLight }}
+          />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por título, ID ou descrição..."
-            className="w-full bg-[#0f1320] border border-[#1f2438] text-white pl-10 pr-4 py-2.5 rounded-lg text-sm font-mono placeholder:text-[#5a6378] focus:outline-none focus:border-[#4a9eff]"
+            placeholder={t.tickets.searchPlaceholder}
+            className="w-full pl-11 pr-4 py-3 rounded-full text-sm focus:outline-none"
+            style={inputStyle}
           />
         </div>
-        <div className="flex gap-1 bg-[#0f1320] border border-[#1f2438] rounded-lg p-1">
+        <div
+          className="flex gap-1 p-1 rounded-full"
+          style={{ backgroundColor: T.surface, border: `1.5px solid ${T.border}` }}
+        >
           {[
-            { key: "all", label: "Todos" },
-            { key: "open", label: "Abertos" },
-            { key: "p1", label: "P1" },
-            { key: "breach", label: "SLA estourado" },
+            { key: "all", label: t.tickets.filterAll },
+            { key: "open", label: t.tickets.filterOpen },
+            { key: "p1", label: t.tickets.filterP1 },
+            { key: "breach", label: t.tickets.filterBreach },
           ].map((f) => (
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
-              className={`px-3 py-1.5 text-xs font-mono uppercase tracking-wider rounded transition-colors ${
-                filter === f.key
-                  ? "bg-[#4a9eff] text-white"
-                  : "text-[#8b94a3] hover:text-white hover:bg-[#1f2438]"
-              }`}
+              className="px-3.5 py-1.5 text-xs font-semibold rounded-full transition-colors"
+              style={{
+                backgroundColor: filter === f.key ? T.text : "transparent",
+                color: filter === f.key ? "#fff" : T.textMid,
+              }}
             >
               {f.label}
             </button>
@@ -1199,58 +2036,83 @@ const TicketList = ({ tickets, onSelect }) => {
       </div>
 
       <Card>
-        <div className="grid grid-cols-12 gap-3 px-5 py-3 border-b border-[#1f2438] text-[10px] font-mono uppercase tracking-wider text-[#5a6378]">
-          <div className="col-span-1">ID</div>
-          <div className="col-span-5">Título</div>
-          <div className="col-span-2">Categoria</div>
-          <div className="col-span-1">Prio</div>
-          <div className="col-span-2">Status</div>
-          <div className="col-span-1">SLA</div>
+        <div
+          className="grid grid-cols-12 gap-3 px-6 py-3 text-[10px] font-semibold uppercase tracking-wider"
+          style={{ borderBottom: `1px solid ${T.border}`, color: T.textLight }}
+        >
+          <div className="col-span-1">{t.tickets.thId}</div>
+          <div className="col-span-5">{t.tickets.thTitle}</div>
+          <div className="col-span-2">{t.tickets.thCategory}</div>
+          <div className="col-span-1">{t.tickets.thPrio}</div>
+          <div className="col-span-2">{t.tickets.thStatus}</div>
+          <div className="col-span-1">{t.tickets.thSla}</div>
         </div>
         {filtered.length === 0 && (
-          <div className="p-12 text-center text-[#8b94a3] text-sm">
-            Nenhum ticket encontrado.
+          <div className="p-12 text-center text-sm" style={{ color: T.textMid }}>
+            {t.tickets.empty}
           </div>
         )}
-        {filtered.map((t) => {
-          const cat = CATEGORIES[t.category];
+        {filtered.map((x, idx) => {
+          const cat = CATEGORIES[x.category];
           const Icon = cat?.icon || Ticket;
-          const sla = slaStatus(t);
+          const sla = slaStatus(x);
           const slaColor =
-            sla.state === "breach" ? "#ff3b5c" : sla.state === "risk" ? "#f5a623" : "#00d4aa";
+            sla.state === "breach"
+              ? T.pinkDark
+              : sla.state === "risk"
+              ? T.yellowDark
+              : T.greenDark;
           return (
             <button
-              key={t.id}
-              onClick={() => onSelect(t)}
-              className="w-full grid grid-cols-12 gap-3 px-5 py-4 border-b border-[#1f2438] last:border-b-0 hover:bg-[#131829] transition-colors text-left items-center"
+              key={x.id}
+              onClick={() => onSelect(x)}
+              className="w-full grid grid-cols-12 gap-3 px-6 py-4 text-left items-center transition-colors"
+              style={{
+                borderBottom: idx === filtered.length - 1 ? "none" : `1px solid ${T.border}`,
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = T.bg2)}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
             >
-              <div className="col-span-1 font-mono text-xs text-[#8b94a3]">{t.id}</div>
+              <div className="col-span-1 text-xs tabular-nums" style={{ color: T.textMid }}>
+                {x.id}
+              </div>
               <div className="col-span-5">
-                <div className="text-sm text-white truncate">{t.title}</div>
-                <div className="text-xs text-[#5a6378] mt-0.5">
-                  {t.requester} · {formatRelative(t.createdAt)}
+                <div
+                  className="text-sm font-medium truncate flex items-center gap-2"
+                  style={{ color: T.text }}
+                >
+                  {bi(x.title, lang)}
+                  {x.attachments?.length > 0 && (
+                    <Paperclip size={12} style={{ color: T.textLight, flexShrink: 0 }} />
+                  )}
+                </div>
+                <div className="text-xs mt-0.5" style={{ color: T.textLight }}>
+                  {x.requester} · {formatRelative(x.createdAt, t)}
                 </div>
               </div>
               <div className="col-span-2">
                 <div className="flex items-center gap-2">
                   <Icon size={14} style={{ color: cat?.accent }} />
-                  <span className="text-xs text-[#8b94a3]">{cat?.label}</span>
+                  <span className="text-xs" style={{ color: T.textMid }}>
+                    {t.categories[x.category]}
+                  </span>
                 </div>
               </div>
               <div className="col-span-1">
-                <Badge color={PRIORITIES[t.priority].color}>{t.priority}</Badge>
+                <Pill color={PRIORITIES[x.priority].color}>{x.priority}</Pill>
               </div>
               <div className="col-span-2">
-                <Badge color={STATUSES[t.status].color}>{STATUSES[t.status].label}</Badge>
+                <Pill color={STATUSES[x.status].color}>{t.statuses[x.status]}</Pill>
               </div>
               <div className="col-span-1">
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 h-1 bg-[#1f2438] rounded-full overflow-hidden">
-                    <div
-                      className="h-full transition-all"
-                      style={{ width: `${sla.pct}%`, backgroundColor: slaColor }}
-                    />
-                  </div>
+                <div
+                  className="h-1.5 rounded-full overflow-hidden"
+                  style={{ backgroundColor: T.bg2 }}
+                >
+                  <div
+                    className="h-full transition-all rounded-full"
+                    style={{ width: `${sla.pct}%`, backgroundColor: slaColor }}
+                  />
                 </div>
               </div>
             </button>
@@ -1261,12 +2123,16 @@ const TicketList = ({ tickets, onSelect }) => {
   );
 };
 
-// ============ NEW TICKET ============
+/* ============================================================
+   NEW TICKET (with override + attachments)
+============================================================ */
 
-const NewTicket = ({ onCreate }) => {
+const NewTicket = ({ onCreate, lang }) => {
+  const t = i18n[lang];
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [requester, setRequester] = useState("");
+  const [attachments, setAttachments] = useState([]);
   const [aiResult, setAiResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [override, setOverride] = useState({});
@@ -1285,190 +2151,220 @@ const NewTicket = ({ onCreate }) => {
 
   const create = () => {
     if (!aiResult || !requester) return;
+    const finalCat = override.category || aiResult.category;
+    const finalSub = override.subKey ?? aiResult.subKey;
+    const finalPrio = override.priority || aiResult.priority;
+    const finalTeam = override.team || aiResult.team;
     const ticket = {
       id: newId(),
-      title,
-      description,
-      category: override.category || aiResult.category,
-      subcategory: override.subcategory || aiResult.subcategory,
-      priority: override.priority || aiResult.priority,
+      title: { pt: title, en: title },
+      description: { pt: description, en: description },
+      category: finalCat,
+      subKey: finalSub,
+      priority: finalPrio,
       status: "new",
-      team: override.team || aiResult.team,
+      team: finalTeam,
       requester,
       createdAt: Date.now(),
       updatedAt: Date.now(),
-      aiReasoning: aiResult.reasoning,
+      aiKey: aiResult.aiKey,
+      attachments,
     };
     onCreate(ticket);
     setTitle("");
     setDescription("");
     setRequester("");
+    setAttachments([]);
     setAiResult(null);
     setOverride({});
   };
 
-  const cat = aiResult ? CATEGORIES[override.category || aiResult.category] : null;
+  const activeCat = override.category || aiResult?.category;
+  const cat = activeCat ? CATEGORIES[activeCat] : null;
 
   return (
-    <div className="space-y-5 max-w-4xl">
-      <div>
-        <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#8b94a3] mb-1">
-          AIOps Categorization
-        </div>
-        <h1 className="text-3xl font-display text-white">Novo ticket</h1>
-        <p className="text-sm text-[#8b94a3] mt-2">
-          A IA analisa o conteúdo e propõe categoria, prioridade e time. Você pode revisar antes
-          de salvar.
-        </p>
-      </div>
+    <div className="max-w-3xl">
+      <PageTitle eyebrow={t.newTicket.eyebrow} title={t.newTicket.title} />
+      <p className="text-base mb-8" style={{ color: T.textMid, lineHeight: 1.6 }}>
+        {t.newTicket.desc}
+      </p>
 
-      <Card className="p-6 space-y-4">
-        <div>
-          <label className="text-[10px] font-mono uppercase tracking-wider text-[#8b94a3]">
-            Solicitante
-          </label>
-          <input
-            type="text"
-            value={requester}
-            onChange={(e) => setRequester(e.target.value)}
-            placeholder="Nome do usuário"
-            className="w-full mt-1.5 bg-[#0a0e1a] border border-[#1f2438] text-white px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:border-[#4a9eff]"
-          />
-        </div>
-        <div>
-          <label className="text-[10px] font-mono uppercase tracking-wider text-[#8b94a3]">
-            Título
-          </label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Resumo curto do problema"
-            className="w-full mt-1.5 bg-[#0a0e1a] border border-[#1f2438] text-white px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:border-[#4a9eff]"
-          />
-        </div>
-        <div>
-          <label className="text-[10px] font-mono uppercase tracking-wider text-[#8b94a3]">
-            Descrição detalhada
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Descreva o problema, o que aconteceu, o que tentou..."
-            rows={5}
-            className="w-full mt-1.5 bg-[#0a0e1a] border border-[#1f2438] text-white px-4 py-3 rounded-lg text-sm focus:outline-none focus:border-[#4a9eff] resize-none"
-          />
-        </div>
+      <Card className="p-6 mb-6">
+        <div className="space-y-5">
+          <Field label={t.common.requester}>
+            <input
+              type="text"
+              value={requester}
+              onChange={(e) => setRequester(e.target.value)}
+              placeholder={t.newTicket.requesterPh}
+              className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none"
+              style={inputStyle}
+            />
+          </Field>
+          <Field label={t.newTicket.titleLabel}>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={t.newTicket.titlePh}
+              className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none"
+              style={inputStyle}
+            />
+          </Field>
+          <Field label={t.newTicket.descLabel}>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={t.newTicket.descPh}
+              rows={5}
+              className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none resize-none"
+              style={inputStyle}
+            />
+          </Field>
+          <Field label={t.common.attachments} hint={t.newTicket.attachmentHint}>
+            <AttachmentInput files={attachments} onChange={setAttachments} t={t} />
+          </Field>
 
-        <button
-          onClick={runAI}
-          disabled={!title || !description || loading}
-          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#4a9eff] to-[#a78bfa] text-white font-mono uppercase tracking-wider text-xs py-3 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
-        >
-          {loading ? (
-            <>
-              <Loader2 size={14} className="animate-spin" />
-              Analisando...
-            </>
-          ) : (
-            <>
-              <Sparkles size={14} />
-              Categorizar com IA
-            </>
-          )}
-        </button>
+          <button
+            onClick={runAI}
+            disabled={!title || !description || loading}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-full text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ backgroundColor: T.text, color: "#fff" }}
+          >
+            {loading ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                {t.newTicket.analyzing}
+              </>
+            ) : (
+              <>
+                <Sparkles size={14} />
+                {t.newTicket.analyzeBtn}
+              </>
+            )}
+          </button>
+        </div>
       </Card>
 
       {aiResult && (
-        <Card className="p-6 border-[#4a9eff]/40 bg-gradient-to-br from-[#0f1320] to-[#131829]">
+        <Card
+          className="p-6"
+          style={{ backgroundColor: T.pinkLight, border: `1px solid ${T.pink}` }}
+        >
           <div className="flex items-center gap-2 mb-4">
-            <Sparkles size={16} className="text-[#4a9eff]" />
-            <div className="text-[11px] font-mono uppercase tracking-wider text-[#4a9eff]">
-              Análise da IA
+            <Sparkles size={14} style={{ color: T.pinkDark }} />
+            <span
+              className="text-[11px] font-semibold uppercase tracking-wider"
+              style={{ color: T.pinkDark }}
+            >
+              {t.newTicket.aiAnalysis}
+            </span>
+          </div>
+
+          <div
+            className="rounded-xl p-4 mb-4"
+            style={{ backgroundColor: T.surface, border: `1px solid ${T.border}` }}
+          >
+            <div
+              className="text-[10px] font-semibold uppercase tracking-wider mb-1.5"
+              style={{ color: T.textLight }}
+            >
+              {t.newTicket.reasoning}
+            </div>
+            <div className="text-sm italic" style={{ color: T.textMid }}>
+              {t.reasoning[aiResult.aiKey]}
             </div>
           </div>
 
-          <div className="bg-[#0a0e1a] border border-[#1f2438] rounded p-4 mb-5">
-            <div className="text-[10px] font-mono uppercase tracking-wider text-[#5a6378] mb-1.5">
-              Raciocínio
-            </div>
-            <div className="text-sm text-[#c8cdd9] italic">{aiResult.reasoning}</div>
+          <div
+            className="text-xs mb-5 italic"
+            style={{ color: T.pinkDark }}
+          >
+            ↓ {t.newTicket.reviewHint}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="text-[10px] font-mono uppercase tracking-wider text-[#8b94a3]">
-                Categoria
-              </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+            <Field label={t.newTicket.category}>
               <select
-                value={override.category || aiResult.category}
-                onChange={(e) => setOverride({ ...override, category: e.target.value })}
-                className="w-full mt-1.5 bg-[#0a0e1a] border border-[#1f2438] text-white px-3 py-2 rounded text-sm focus:outline-none focus:border-[#4a9eff]"
+                value={activeCat}
+                onChange={(e) =>
+                  setOverride({ ...override, category: e.target.value, subKey: 0 })
+                }
+                className="w-full px-3 py-2.5 rounded-xl text-sm focus:outline-none cursor-pointer"
+                style={inputStyle}
               >
-                {Object.entries(CATEGORIES).map(([k, c]) => (
+                {Object.keys(CATEGORIES).map((k) => (
                   <option key={k} value={k}>
-                    {c.label}
+                    {t.categories[k]}
                   </option>
                 ))}
               </select>
-            </div>
-            <div>
-              <label className="text-[10px] font-mono uppercase tracking-wider text-[#8b94a3]">
-                Prioridade
-              </label>
+            </Field>
+            <Field label={t.newTicket.priority}>
               <select
                 value={override.priority || aiResult.priority}
                 onChange={(e) => setOverride({ ...override, priority: e.target.value })}
-                className="w-full mt-1.5 bg-[#0a0e1a] border border-[#1f2438] text-white px-3 py-2 rounded text-sm focus:outline-none focus:border-[#4a9eff]"
+                className="w-full px-3 py-2.5 rounded-xl text-sm focus:outline-none cursor-pointer"
+                style={inputStyle}
               >
-                {Object.entries(PRIORITIES).map(([k, p]) => (
+                {Object.keys(PRIORITIES).map((k) => (
                   <option key={k} value={k}>
-                    {p.label}
+                    {t.priorities[k]}
                   </option>
                 ))}
               </select>
-            </div>
-            <div>
-              <label className="text-[10px] font-mono uppercase tracking-wider text-[#8b94a3]">
-                Subcategoria
-              </label>
-              <input
-                type="text"
-                value={override.subcategory || aiResult.subcategory}
-                onChange={(e) => setOverride({ ...override, subcategory: e.target.value })}
-                className="w-full mt-1.5 bg-[#0a0e1a] border border-[#1f2438] text-white px-3 py-2 rounded text-sm focus:outline-none focus:border-[#4a9eff]"
-              />
-            </div>
-            <div>
-              <label className="text-[10px] font-mono uppercase tracking-wider text-[#8b94a3]">
-                Time responsável
-              </label>
+            </Field>
+            <Field label={t.newTicket.subcategory}>
+              <select
+                value={override.subKey ?? aiResult.subKey}
+                onChange={(e) =>
+                  setOverride({ ...override, subKey: parseInt(e.target.value, 10) })
+                }
+                className="w-full px-3 py-2.5 rounded-xl text-sm focus:outline-none cursor-pointer"
+                style={inputStyle}
+              >
+                {cat &&
+                  cat.subcategories[lang].map((s, i) => (
+                    <option key={i} value={i}>
+                      {s}
+                    </option>
+                  ))}
+              </select>
+            </Field>
+            <Field label={t.newTicket.teamLabel}>
               <input
                 type="text"
                 value={override.team || aiResult.team}
                 onChange={(e) => setOverride({ ...override, team: e.target.value })}
-                className="w-full mt-1.5 bg-[#0a0e1a] border border-[#1f2438] text-white px-3 py-2 rounded text-sm focus:outline-none focus:border-[#4a9eff]"
+                className="w-full px-3 py-2.5 rounded-xl text-sm focus:outline-none"
+                style={inputStyle}
               />
-            </div>
+            </Field>
           </div>
 
           {cat && (
-            <div className="bg-[#0a0e1a] border border-[#1f2438] rounded p-4 mb-5 flex items-center gap-3">
+            <div
+              className="rounded-xl p-4 mb-5 flex items-center gap-3"
+              style={{ backgroundColor: T.surface, border: `1px solid ${T.border}` }}
+            >
               <div
-                className="w-10 h-10 rounded flex items-center justify-center"
-                style={{ backgroundColor: `${cat.accent}20` }}
+                className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: cat.bg }}
               >
-                <cat.icon size={18} style={{ color: cat.accent }} />
+                <cat.icon size={20} style={{ color: cat.accent }} />
               </div>
               <div className="flex-1">
-                <div className="text-sm text-white">
-                  Tempo de resolução alvo:{" "}
-                  <span className="font-mono text-[#4a9eff]">
-                    {(PRIORITIES[override.priority || aiResult.priority].slaResolveMin / 60).toFixed(1)}h
+                <div className="text-sm" style={{ color: T.text }}>
+                  {t.newTicket.slaTarget}:{" "}
+                  <span className="font-semibold tabular-nums" style={{ color: T.pinkDark }}>
+                    {(
+                      PRIORITIES[override.priority || aiResult.priority].slaResolveMin / 60
+                    ).toFixed(1)}
+                    h
                   </span>
                 </div>
-                <div className="text-xs text-[#8b94a3] mt-0.5">
-                  Resposta inicial em até{" "}
+                <div className="text-xs mt-0.5" style={{ color: T.textLight }}>
+                  {t.newTicket.initialResponse}{" "}
                   {PRIORITIES[override.priority || aiResult.priority].slaResponseMin}min
                 </div>
               </div>
@@ -1478,10 +2374,11 @@ const NewTicket = ({ onCreate }) => {
           <button
             onClick={create}
             disabled={!requester}
-            className="w-full flex items-center justify-center gap-2 bg-[#00d4aa] text-[#0a0e1a] font-mono uppercase tracking-wider text-xs py-3 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#00b894] transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-full text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ backgroundColor: T.greenDark, color: "#fff" }}
           >
             <Send size={14} />
-            Criar ticket
+            {t.newTicket.submit}
           </button>
         </Card>
       )}
@@ -1489,180 +2386,274 @@ const NewTicket = ({ onCreate }) => {
   );
 };
 
-// ============ TICKET DETAIL MODAL ============
+/* ============================================================
+   TICKET DETAIL
+============================================================ */
 
-const TicketDetail = ({ ticket, onClose, onUpdate }) => {
-  if (!ticket) return null;
-  const cat = CATEGORIES[ticket.category];
-  const Icon = cat?.icon || Ticket;
-  const sla = slaStatus(ticket);
-
-  const updateStatus = (status) => {
-    onUpdate({ ...ticket, status, updatedAt: Date.now() });
-  };
-
-  return (
-    <div
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-[#0f1320] border border-[#1f2438] rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-6 border-b border-[#1f2438] flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="font-mono text-xs text-[#8b94a3]">{ticket.id}</span>
-              <Badge color={PRIORITIES[ticket.priority].color}>{ticket.priority}</Badge>
-              <Badge color={STATUSES[ticket.status].color}>{STATUSES[ticket.status].label}</Badge>
-            </div>
-            <h2 className="text-xl text-white font-display">{ticket.title}</h2>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-[#8b94a3] hover:text-white p-1"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-5">
-          <div>
-            <div className="text-[10px] font-mono uppercase tracking-wider text-[#5a6378] mb-2">
-              Descrição
-            </div>
-            <div className="text-sm text-[#c8cdd9] bg-[#0a0e1a] border border-[#1f2438] rounded p-4">
-              {ticket.description}
-            </div>
-          </div>
-
-          {ticket.aiReasoning && (
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles size={12} className="text-[#a78bfa]" />
-                <div className="text-[10px] font-mono uppercase tracking-wider text-[#a78bfa]">
-                  Análise da IA
-                </div>
-              </div>
-              <div className="text-sm text-[#c8cdd9] italic bg-[#0a0e1a] border border-[#a78bfa]/30 rounded p-4">
-                {ticket.aiReasoning}
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-4">
-            <Detail label="Categoria" value={cat?.label} icon={Icon} accent={cat?.accent} />
-            <Detail label="Subcategoria" value={ticket.subcategory} />
-            <Detail label="Time" value={ticket.team} />
-            <Detail label="Solicitante" value={ticket.requester} />
-            <Detail label="Criado" value={formatRelative(ticket.createdAt)} />
-            <Detail label="Atualizado" value={formatRelative(ticket.updatedAt)} />
-          </div>
-
-          {/* SLA */}
-          <div className="bg-[#0a0e1a] border border-[#1f2438] rounded p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-[10px] font-mono uppercase tracking-wider text-[#5a6378]">
-                Status do SLA
-              </div>
-              <span
-                className="text-xs font-mono uppercase tracking-wider"
-                style={{
-                  color:
-                    sla.state === "breach"
-                      ? "#ff3b5c"
-                      : sla.state === "risk"
-                      ? "#f5a623"
-                      : "#00d4aa",
-                }}
-              >
-                {sla.state === "breach"
-                  ? "Estourado"
-                  : sla.state === "risk"
-                  ? "Em risco"
-                  : "Dentro do prazo"}
-              </span>
-            </div>
-            <div className="h-2 bg-[#1f2438] rounded-full overflow-hidden">
-              <div
-                className="h-full transition-all"
-                style={{
-                  width: `${sla.pct}%`,
-                  backgroundColor:
-                    sla.state === "breach"
-                      ? "#ff3b5c"
-                      : sla.state === "risk"
-                      ? "#f5a623"
-                      : "#00d4aa",
-                }}
-              />
-            </div>
-            <div className="text-xs text-[#8b94a3] mt-2 font-mono">
-              Alvo: {(PRIORITIES[ticket.priority].slaResolveMin / 60).toFixed(1)}h totais
-            </div>
-          </div>
-
-          {/* Status actions */}
-          <div>
-            <div className="text-[10px] font-mono uppercase tracking-wider text-[#5a6378] mb-3">
-              Mudar status
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {Object.entries(STATUSES).map(([key, s]) => (
-                <button
-                  key={key}
-                  onClick={() => updateStatus(key)}
-                  disabled={ticket.status === key}
-                  className="px-3 py-1.5 text-xs font-mono uppercase tracking-wider rounded border transition-all"
-                  style={{
-                    backgroundColor: ticket.status === key ? `${s.color}20` : "transparent",
-                    borderColor: ticket.status === key ? s.color : "#1f2438",
-                    color: ticket.status === key ? s.color : "#8b94a3",
-                    cursor: ticket.status === key ? "default" : "pointer",
-                  }}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const Detail = ({ label, value, icon: Icon, accent }) => (
+const DetailItem = ({ label, value, icon: Icon, accent }) => (
   <div>
-    <div className="text-[10px] font-mono uppercase tracking-wider text-[#5a6378] mb-1">
+    <div
+      className="text-[10px] font-semibold uppercase tracking-wider mb-1.5"
+      style={{ color: T.textLight }}
+    >
       {label}
     </div>
-    <div className="flex items-center gap-2 text-sm text-white">
+    <div className="flex items-center gap-2 text-sm font-medium" style={{ color: T.text }}>
       {Icon && <Icon size={14} style={{ color: accent }} />}
       {value}
     </div>
   </div>
 );
 
-// ============ MAIN APP ============
+const TicketDetail = ({ ticket, onClose, onUpdate, lang }) => {
+  if (!ticket) return null;
+  const t = i18n[lang];
+  const cat = CATEGORIES[ticket.category];
+  const Icon = cat?.icon || Ticket;
+  const sla = slaStatus(ticket);
+  const slaColor =
+    sla.state === "breach" ? T.pinkDark : sla.state === "risk" ? T.yellowDark : T.greenDark;
+
+  const updateStatus = (status) => {
+    onUpdate({ ...ticket, status, updatedAt: Date.now() });
+  };
+
+  const subLabel = cat?.subcategories[lang][ticket.subKey] || "";
+
+  return (
+    <Modal onClose={onClose}>
+      <div
+        className="p-6 flex items-start justify-between gap-4"
+        style={{ borderBottom: `1px solid ${T.border}` }}
+      >
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <span className="text-xs font-medium tabular-nums" style={{ color: T.textMid }}>
+              {ticket.id}
+            </span>
+            <Pill color={PRIORITIES[ticket.priority].color}>{ticket.priority}</Pill>
+            <Pill color={STATUSES[ticket.status].color}>{t.statuses[ticket.status]}</Pill>
+          </div>
+          <h2
+            className="text-2xl leading-tight"
+            style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}
+          >
+            {bi(ticket.title, lang)}
+          </h2>
+        </div>
+        <button onClick={onClose} className="p-1" style={{ color: T.textMid }}>
+          <X size={22} />
+        </button>
+      </div>
+
+      <div className="p-6 space-y-5">
+        <div>
+          <div
+            className="text-[10px] font-semibold uppercase tracking-wider mb-2"
+            style={{ color: T.textLight }}
+          >
+            {t.detail.description}
+          </div>
+          <div
+            className="text-sm leading-relaxed rounded-xl p-4 whitespace-pre-line"
+            style={{ backgroundColor: T.bg2, border: `1px solid ${T.border}`, color: T.text }}
+          >
+            {bi(ticket.description, lang)}
+          </div>
+        </div>
+
+        {ticket.attachments?.length > 0 && (
+          <div>
+            <div
+              className="text-[10px] font-semibold uppercase tracking-wider mb-2"
+              style={{ color: T.textLight }}
+            >
+              {t.common.attachments}
+            </div>
+            <div className="space-y-2">
+              {ticket.attachments.map((f, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                  style={{ backgroundColor: T.bg2, border: `1px solid ${T.border}` }}
+                >
+                  <FileText size={14} style={{ color: T.textMid }} />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm truncate" style={{ color: T.text }}>
+                      {f.name}
+                    </div>
+                    <div className="text-xs" style={{ color: T.textLight }}>
+                      {formatFileSize(f.size)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {ticket.aiKey && (
+          <div>
+            <div className="flex items-center gap-1.5 mb-2">
+              <Sparkles size={12} style={{ color: T.pinkDark }} />
+              <span
+                className="text-[10px] font-semibold uppercase tracking-wider"
+                style={{ color: T.pinkDark }}
+              >
+                {t.detail.aiAnalysis}
+              </span>
+            </div>
+            <div
+              className="text-sm italic rounded-xl p-4"
+              style={{
+                backgroundColor: T.pinkLight,
+                border: `1px solid ${T.pink}`,
+                color: T.pinkDark,
+              }}
+            >
+              {ticket.aiKey === "catalog"
+                ? t.reasoning.catalog(ticket.catalogId)
+                : t.reasoning[ticket.aiKey]}
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-4">
+          <DetailItem
+            label={t.newTicket.category}
+            value={t.categories[ticket.category]}
+            icon={Icon}
+            accent={cat?.accent}
+          />
+          <DetailItem label={t.newTicket.subcategory} value={subLabel} />
+          <DetailItem label={t.common.team} value={ticket.team} />
+          <DetailItem label={t.common.requester} value={ticket.requester} />
+          <DetailItem label={t.common.created} value={formatRelative(ticket.createdAt, t)} />
+          <DetailItem label={t.common.updated} value={formatRelative(ticket.updatedAt, t)} />
+        </div>
+
+        <div
+          className="rounded-xl p-4"
+          style={{ backgroundColor: T.bg2, border: `1px solid ${T.border}` }}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div
+              className="text-[10px] font-semibold uppercase tracking-wider"
+              style={{ color: T.textLight }}
+            >
+              {t.detail.slaStatus}
+            </div>
+            <span
+              className="text-xs font-semibold uppercase tracking-wider"
+              style={{ color: slaColor }}
+            >
+              {sla.state === "breach"
+                ? t.detail.breached
+                : sla.state === "risk"
+                ? t.detail.atRisk
+                : t.detail.onTrack}
+            </span>
+          </div>
+          <div
+            className="h-2 rounded-full overflow-hidden"
+            style={{ backgroundColor: T.surface }}
+          >
+            <div
+              className="h-full transition-all rounded-full"
+              style={{ width: `${sla.pct}%`, backgroundColor: slaColor }}
+            />
+          </div>
+          <div className="text-xs mt-2 tabular-nums" style={{ color: T.textMid }}>
+            {t.detail.slaTarget}: {(PRIORITIES[ticket.priority].slaResolveMin / 60).toFixed(1)}{" "}
+            {t.detail.hoursTotal}
+          </div>
+        </div>
+
+        <div>
+          <div
+            className="text-[10px] font-semibold uppercase tracking-wider mb-3"
+            style={{ color: T.textLight }}
+          >
+            {t.detail.changeStatus}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(STATUSES).map(([key, s]) => (
+              <button
+                key={key}
+                onClick={() => updateStatus(key)}
+                disabled={ticket.status === key}
+                className="px-3.5 py-1.5 text-xs font-semibold rounded-full transition-all"
+                style={{
+                  backgroundColor: ticket.status === key ? `${s.color}15` : "transparent",
+                  borderColor: ticket.status === key ? s.color : T.border,
+                  borderWidth: 1.5,
+                  borderStyle: "solid",
+                  color: ticket.status === key ? s.color : T.textMid,
+                  cursor: ticket.status === key ? "default" : "pointer",
+                }}
+              >
+                {t.statuses[key]}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+/* ============================================================
+   LANGUAGE TOGGLE
+============================================================ */
+
+const LangToggle = ({ lang, onChange }) => (
+  <div
+    className="inline-flex items-center rounded-full overflow-hidden"
+    style={{ border: `1.5px solid ${T.border}` }}
+  >
+    {["en", "pt"].map((l) => (
+      <button
+        key={l}
+        onClick={() => onChange(l)}
+        className="px-3 py-1 text-[11px] font-bold tracking-wider transition-all"
+        style={{
+          backgroundColor: lang === l ? T.text : "transparent",
+          color: lang === l ? "#fff" : T.textLight,
+          borderRadius: lang === l ? "99px" : 0,
+        }}
+      >
+        {l.toUpperCase()}
+      </button>
+    ))}
+  </div>
+);
+
+/* ============================================================
+   MAIN APP
+============================================================ */
 
 export default function App() {
   const [view, setView] = useState("dashboard");
   const [tickets, setTickets] = useState([]);
   const [selected, setSelected] = useState(null);
   const [loaded, setLoaded] = useState(false);
+  const [lang, setLang] = useState(loadLang());
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    loadTickets().then((t) => {
-      setTickets(t);
-      setLoaded(true);
-    });
+    setTickets(loadTickets());
+    setLoaded(true);
   }, []);
 
   useEffect(() => {
     if (loaded) saveTickets(tickets);
   }, [tickets, loaded]);
+
+  useEffect(() => {
+    saveLang(lang);
+  }, [lang]);
+
+  const t = i18n[lang];
 
   const handleCreate = (ticket) => {
     setTickets([ticket, ...tickets]);
@@ -1670,37 +2661,57 @@ export default function App() {
   };
 
   const handleUpdate = (updated) => {
-    setTickets(tickets.map((t) => (t.id === updated.id ? updated : t)));
+    setTickets(tickets.map((x) => (x.id === updated.id ? updated : x)));
     setSelected(updated);
   };
 
   const navItems = [
-    { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { key: "catalog", label: "Catálogo", icon: BookOpen },
-    { key: "tickets", label: "Tickets", icon: Ticket },
-    { key: "new", label: "Novo ticket", icon: PlusCircle },
+    { key: "dashboard", label: t.nav.dashboard, icon: LayoutDashboard },
+    { key: "catalog", label: t.nav.catalog, icon: BookOpen },
+    { key: "tickets", label: t.nav.tickets, icon: Ticket },
+    { key: "new", label: t.nav.newTicket, icon: PlusCircle },
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a0e1a] text-white" style={{ fontFamily: "'Geist', system-ui" }}>
+    <div className="min-h-screen" style={{ backgroundColor: T.bg, color: T.text }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&family=Geist:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
-        .font-display { font-family: 'Bricolage Grotesque', sans-serif; letter-spacing: -0.02em; }
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
-        body { font-family: 'Geist', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+        body, html, * { font-family: 'DM Sans', system-ui, sans-serif; }
+        ::selection { background-color: ${T.pink}; color: ${T.text}; }
+        input::placeholder, textarea::placeholder { color: ${T.textLight}; }
+        select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A09890' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 14px; padding-right: 2rem; }
+        input:focus, textarea:focus, select:focus { border-color: ${T.pinkDark} !important; }
       `}</style>
 
       <div className="flex min-h-screen">
-        {/* Sidebar */}
-        <aside className="w-60 bg-[#070a13] border-r border-[#1f2438] p-4 flex flex-col">
-          <div className="flex items-center gap-2 mb-8 px-2">
-            <div className="w-8 h-8 rounded bg-gradient-to-br from-[#4a9eff] to-[#a78bfa] flex items-center justify-center">
-              <Zap size={16} className="text-white" />
+        {/* Sidebar — desktop */}
+        <aside
+          className="hidden md:flex w-60 flex-col p-5"
+          style={{ backgroundColor: T.bg2, borderRight: `1px solid ${T.border}` }}
+        >
+          <div className="flex items-center gap-2.5 mb-10 px-1">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: `linear-gradient(135deg, ${T.pinkDark}, ${T.pink})` }}
+            >
+              <span style={{ color: "#fff", fontWeight: 700, fontSize: 14 }}>F</span>
             </div>
             <div>
-              <div className="text-sm font-display text-white leading-none">FluxoOps</div>
-              <div className="text-[9px] font-mono uppercase tracking-widest text-[#5a6378] mt-0.5">
-                ITSM · v1.0
+              <div
+                style={{
+                  fontFamily: "'DM Serif Display', serif",
+                  color: T.text,
+                  fontSize: 17,
+                  lineHeight: 1,
+                }}
+              >
+                {t.appName}
+              </div>
+              <div
+                className="text-[9px] font-semibold uppercase tracking-[0.2em] mt-1"
+                style={{ color: T.textLight }}
+              >
+                {t.appTagline}
               </div>
             </div>
           </div>
@@ -1712,12 +2723,16 @@ export default function App() {
               return (
                 <button
                   key={item.key}
-                  onClick={() => setView(item.key)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                    active
-                      ? "bg-[#4a9eff]/10 text-[#4a9eff] border border-[#4a9eff]/30"
-                      : "text-[#8b94a3] hover:text-white hover:bg-[#131829] border border-transparent"
-                  }`}
+                  onClick={() => {
+                    setView(item.key);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all"
+                  style={{
+                    backgroundColor: active ? T.pinkLight : "transparent",
+                    color: active ? T.pinkDark : T.textMid,
+                    border: active ? `1px solid ${T.pink}` : "1px solid transparent",
+                  }}
                 >
                   <Icon size={16} />
                   {item.label}
@@ -1726,31 +2741,96 @@ export default function App() {
             })}
           </nav>
 
-          <div className="bg-[#0f1320] border border-[#1f2438] rounded-lg p-3 text-xs">
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles size={12} className="text-[#a78bfa]" />
-              <span className="text-[10px] font-mono uppercase tracking-wider text-[#a78bfa]">
-                AIOps
+          <div
+            className="rounded-xl p-3.5 text-xs mb-3"
+            style={{ backgroundColor: T.pinkLight, border: `1px solid ${T.pink}` }}
+          >
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <Sparkles size={11} style={{ color: T.pinkDark }} />
+              <span
+                className="text-[10px] font-semibold uppercase tracking-wider"
+                style={{ color: T.pinkDark }}
+              >
+                {t.aiopsLabel}
               </span>
             </div>
-            <div className="text-[#8b94a3] leading-relaxed">
-              Categorização e priorização automáticas via Claude API.
-            </div>
+            <div style={{ color: T.pinkDark, lineHeight: 1.5 }}>{t.aiopsDesc}</div>
+          </div>
+
+          <div className="flex justify-center pt-2">
+            <LangToggle lang={lang} onChange={setLang} />
           </div>
         </aside>
 
-        {/* Main */}
-        <main className="flex-1 p-8 overflow-y-auto">
+        {/* Mobile top bar */}
+        <div
+          className="md:hidden fixed top-0 left-0 right-0 z-40 px-4 py-3 flex items-center justify-between"
+          style={{ backgroundColor: T.bg2, borderBottom: `1px solid ${T.border}` }}
+        >
+          <div className="flex items-center gap-2">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ background: `linear-gradient(135deg, ${T.pinkDark}, ${T.pink})` }}
+            >
+              <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>F</span>
+            </div>
+            <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16 }}>
+              {t.appName}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <LangToggle lang={lang} onChange={setLang} />
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              <Menu size={20} style={{ color: T.text }} />
+            </button>
+          </div>
+        </div>
+
+        {mobileMenuOpen && (
+          <div
+            className="md:hidden fixed top-[57px] left-0 right-0 z-30 p-3"
+            style={{ backgroundColor: T.bg2, borderBottom: `1px solid ${T.border}` }}
+          >
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active = view === item.key;
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => {
+                    setView(item.key);
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium mb-1"
+                  style={{
+                    backgroundColor: active ? T.pinkLight : "transparent",
+                    color: active ? T.pinkDark : T.textMid,
+                  }}
+                >
+                  <Icon size={16} />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        <main className="flex-1 p-5 md:p-10 overflow-y-auto pt-20 md:pt-10">
           {!loaded ? (
-            <div className="flex items-center justify-center h-64 text-[#8b94a3]">
-              <Loader2 size={20} className="animate-spin mr-2" /> Carregando...
+            <div
+              className="flex items-center justify-center h-64"
+              style={{ color: T.textMid }}
+            >
+              <Loader2 size={20} className="animate-spin mr-2" /> {t.common.loading}
             </div>
           ) : (
             <>
-              {view === "dashboard" && <Dashboard tickets={tickets} />}
-              {view === "catalog" && <ServiceCatalog onRequest={handleCreate} />}
-              {view === "tickets" && <TicketList tickets={tickets} onSelect={setSelected} />}
-              {view === "new" && <NewTicket onCreate={handleCreate} />}
+              {view === "dashboard" && <Dashboard tickets={tickets} lang={lang} />}
+              {view === "catalog" && <ServiceCatalogView onRequest={handleCreate} lang={lang} />}
+              {view === "tickets" && (
+                <TicketList tickets={tickets} onSelect={setSelected} lang={lang} />
+              )}
+              {view === "new" && <NewTicket onCreate={handleCreate} lang={lang} />}
             </>
           )}
         </main>
@@ -1761,6 +2841,7 @@ export default function App() {
           ticket={selected}
           onClose={() => setSelected(null)}
           onUpdate={handleUpdate}
+          lang={lang}
         />
       )}
     </div>
