@@ -90,6 +90,9 @@ const T = {
   catGeneral: "#8B7E73",
 };
 
+/* Mascot URL — hosted in the user's portfolio repo for consistency */
+const MASCOT_URL = "https://raw.githubusercontent.com/larixa/larixa.github.io/main/fluxoops-mascot.png";
+
 /* ============================================================
    I18N
 ============================================================ */
@@ -144,6 +147,34 @@ const i18n = {
       viewAll: "Ver tudo",
       back: "Voltar",
       type: "Tipo",
+    },
+
+    tour: {
+      welcomeTitle: "Olá! Quer um tour rápido?",
+      welcomeDesc: "Em menos de 1 minuto você conhece tudo que dá pra fazer aqui. Pode pular se preferir.",
+      start: "Começar tour",
+      skip: "Pular",
+      next: "Próximo",
+      prev: "Anterior",
+      finish: "Concluir",
+      step: "Passo",
+      of: "de",
+      operatorSteps: [
+        { title: "Dashboard", desc: "Visão completa de operações: KPIs em tempo real (tickets abertos, P1 críticos, SLA em risco, MTTR), gráficos de tendência e distribuição por tipo ITIL." },
+        { title: "Catálogo de Serviços", desc: "Itens padronizados que o time de TI oferece — onboarding, acessos, novos devices, licenças. Cada solicitação vira um ticket com fluxo pré-aprovado." },
+        { title: "Tickets", desc: "Lista completa de todos os tickets com filtros por tipo (Incidentes / Solicitações / Mudanças), prioridade e status SLA. Clica num ticket pra abrir, atualizar status ou ver detalhes." },
+        { title: "Novo ticket", desc: "Crie um ticket manualmente. A IA analisa título e descrição e sugere automaticamente tipo, categoria, prioridade e time — você pode ajustar antes de salvar." },
+        { title: "Logística", desc: "Acompanhe envios e recepções de devices internacionalmente. Pipeline visual, mini-mapa com destinos e fluxo até o registro final no CMDB." },
+        { title: "Base de Conhecimento", desc: "Artigos e guias com renderização rica em markdown. Quando alguém abre um ticket, sugestões aparecem automaticamente — pra reduzir solicitações evitáveis." },
+        { title: "AIOps", desc: "Toda a categorização, priorização e sugestão de KB é automatizada. Reduz tempo de triagem e padroniza o atendimento." },
+      ],
+      enduserSteps: [
+        { title: "Catálogo de Serviços", desc: "Encontre rapidamente o que você precisa — reset de senha, novo notebook, acesso a aplicações, licenças. Cada item tem SLA conhecido." },
+        { title: "Novo ticket", desc: "Não achou no catálogo? Abra um ticket descrevendo o problema. A IA categoriza automaticamente e ainda sugere artigos da Base de Conhecimento que talvez resolvam." },
+        { title: "Meus tickets", desc: "Acompanhe o status dos tickets que você abriu — em andamento, aguardando, resolvido. Tudo em tempo real." },
+        { title: "Meus devices", desc: "Veja onde estão os devices atribuídos a você — ainda em preparação, em trânsito, entregue ou já registrado no inventário." },
+        { title: "Base de Conhecimento", desc: "Antes de abrir um ticket, dá uma olhada aqui. Tem guias de VPN, MFA, phishing, e muito mais — escritos pra você resolver sozinho de forma rápida." },
+      ],
     },
 
     types: {
@@ -474,6 +505,34 @@ const i18n = {
       viewAll: "View all",
       back: "Back",
       type: "Type",
+    },
+
+    tour: {
+      welcomeTitle: "Hi! Want a quick tour?",
+      welcomeDesc: "In less than a minute you'll see everything you can do here. You can skip if you prefer.",
+      start: "Start tour",
+      skip: "Skip",
+      next: "Next",
+      prev: "Previous",
+      finish: "Finish",
+      step: "Step",
+      of: "of",
+      operatorSteps: [
+        { title: "Dashboard", desc: "Complete operations view: real-time KPIs (open tickets, critical P1, SLA at risk, MTTR), trend charts and distribution by ITIL type." },
+        { title: "Service Catalog", desc: "Standardised items the IT team offers — onboarding, access, new devices, licenses. Each request becomes a ticket with a pre-approved workflow." },
+        { title: "Tickets", desc: "Complete list of all tickets with filters by type (Incidents / Requests / Changes), priority and SLA status. Click a ticket to open it, update status or see details." },
+        { title: "New ticket", desc: "Create a ticket manually. AI analyses title and description and automatically suggests type, category, priority and team — you can adjust before saving." },
+        { title: "Logistics", desc: "Track international device shipping and receiving. Visual pipeline, mini-map with destinations and full flow until final CMDB registration." },
+        { title: "Knowledge Base", desc: "Articles and guides with rich markdown rendering. When someone opens a ticket, suggestions appear automatically — to deflect avoidable requests." },
+        { title: "AIOps", desc: "All categorisation, prioritisation and KB suggestions are automated. Reduces triage time and standardises support." },
+      ],
+      enduserSteps: [
+        { title: "Service Catalog", desc: "Quickly find what you need — password reset, new laptop, application access, licenses. Each item has a known SLA." },
+        { title: "New ticket", desc: "Didn't find it in the catalog? Open a ticket describing the problem. AI categorises automatically and even suggests Knowledge Base articles that might solve it." },
+        { title: "My tickets", desc: "Track the status of tickets you've opened — in progress, waiting, resolved. All in real-time." },
+        { title: "My devices", desc: "See where the devices assigned to you are — still preparing, in transit, delivered or already registered in inventory." },
+        { title: "Knowledge Base", desc: "Before opening a ticket, take a look here. There are guides for VPN, MFA, phishing, and much more — written for you to solve it yourself, quickly." },
+      ],
     },
 
     types: {
@@ -2262,8 +2321,9 @@ const LoginScreen = ({ onLogin, lang, setLang }) => {
       <div className="w-full max-w-3xl">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-3 mb-6">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${T.pinkDark}, ${T.pink})` }}>
-              <span style={{ color: "#fff", fontWeight: 700, fontSize: 22, fontFamily: "'DM Serif Display', serif" }}>F</span>
+            <div className="w-20 h-20 rounded-2xl overflow-hidden flex items-center justify-center"
+              style={{ backgroundColor: T.bg2, border: `1px solid ${T.border}` }}>
+              <img src={MASCOT_URL} alt="FluxoOps mascot" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
           </div>
           <div className="text-sm font-medium uppercase tracking-[0.2em] mb-2" style={{ color: T.pinkDark }}>{t.login.welcome}</div>
@@ -4143,6 +4203,173 @@ const ShipmentDetail = ({ shipment, onClose, onUpdate, lang, currentUser }) => {
 };
 
 /* ============================================================
+   QUICK TOUR — anchored tooltips
+============================================================ */
+
+const TOUR_KEY = "fluxoops-tour-completed";
+
+const QuickTour = ({ steps, onFinish, lang }) => {
+  const t = i18n[lang];
+  // -1 = welcome modal, 0..n-1 = step pointing at nav item
+  const [stepIdx, setStepIdx] = useState(-1);
+  const [anchorRect, setAnchorRect] = useState(null);
+
+  // Find anchor element for current step
+  useEffect(() => {
+    if (stepIdx < 0) return;
+    const updateRect = () => {
+      const navKey = steps[stepIdx]?.navKey;
+      if (!navKey) {
+        setAnchorRect(null);
+        return;
+      }
+      const el = document.querySelector(`[data-tour="${navKey}"]`);
+      if (el) {
+        const r = el.getBoundingClientRect();
+        setAnchorRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+      } else {
+        setAnchorRect(null);
+      }
+    };
+    updateRect();
+    window.addEventListener("resize", updateRect);
+    return () => window.removeEventListener("resize", updateRect);
+  }, [stepIdx, steps]);
+
+  const skip = () => onFinish();
+  const next = () => stepIdx < steps.length - 1 ? setStepIdx(stepIdx + 1) : onFinish();
+  const prev = () => setStepIdx(Math.max(0, stepIdx - 1));
+
+  // === WELCOME MODAL ===
+  if (stepIdx === -1) {
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+        style={{ backgroundColor: "rgba(44,40,37,0.55)", backdropFilter: "blur(4px)" }}>
+        <div className="rounded-2xl max-w-md w-full p-7 text-center"
+          style={{ backgroundColor: T.surface, border: `1px solid ${T.border}` }}>
+          <div className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center"
+            style={{ background: `linear-gradient(135deg, ${T.pinkDark}, ${T.pink})` }}>
+            <Sparkles size={28} style={{ color: "#fff" }} />
+          </div>
+          <h2 className="text-2xl mb-3" style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}>
+            {t.tour.welcomeTitle}
+          </h2>
+          <p className="text-sm mb-6 leading-relaxed" style={{ color: T.textMid }}>
+            {t.tour.welcomeDesc}
+          </p>
+          <div className="flex gap-2 justify-center">
+            <button onClick={skip}
+              className="px-5 py-2.5 rounded-full text-sm font-semibold transition-colors"
+              style={{ backgroundColor: T.surface, border: `1.5px solid ${T.border}`, color: T.textMid }}>
+              {t.tour.skip}
+            </button>
+            <button onClick={() => setStepIdx(0)}
+              className="px-5 py-2.5 rounded-full text-sm font-semibold transition-all flex items-center gap-2"
+              style={{ backgroundColor: T.pinkDark, color: "#fff" }}>
+              <Sparkles size={14} />
+              {t.tour.start}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const current = steps[stepIdx];
+
+  // Tooltip position: to the right of sidebar item, fall back to centered
+  const tooltipStyle = anchorRect
+    ? {
+        top: anchorRect.top + anchorRect.height / 2,
+        left: anchorRect.left + anchorRect.width + 16,
+        transform: "translateY(-50%)",
+      }
+    : { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
+
+  return (
+    <div className="fixed inset-0 z-[100]" style={{ backgroundColor: "rgba(44,40,37,0.5)" }} onClick={skip}>
+      {/* Highlight ring around anchor */}
+      {anchorRect && (
+        <div className="absolute pointer-events-none rounded-xl transition-all"
+          style={{
+            top: anchorRect.top - 4,
+            left: anchorRect.left - 4,
+            width: anchorRect.width + 8,
+            height: anchorRect.height + 8,
+            backgroundColor: T.surface,
+            boxShadow: `0 0 0 4px ${T.pink}, 0 0 0 9999px rgba(44,40,37,0.5)`,
+          }} />
+      )}
+
+      {/* Tooltip card */}
+      <div className="absolute rounded-2xl p-5 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          ...tooltipStyle,
+          backgroundColor: T.surface,
+          border: `1px solid ${T.border}`,
+          width: 320,
+          maxWidth: "calc(100vw - 32px)",
+        }}>
+        {/* Arrow pointing to anchor */}
+        {anchorRect && (
+          <div className="absolute" style={{
+            left: -8,
+            top: "50%",
+            transform: "translateY(-50%) rotate(45deg)",
+            width: 14, height: 14,
+            backgroundColor: T.surface,
+            borderLeft: `1px solid ${T.border}`,
+            borderBottom: `1px solid ${T.border}`,
+          }} />
+        )}
+
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: T.pinkDark }}>
+            {t.tour.step} {stepIdx + 1} {t.tour.of} {steps.length}
+          </span>
+          <button onClick={skip} className="text-xs font-medium transition-colors"
+            style={{ color: T.textLight }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = T.pinkDark)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = T.textLight)}>
+            {t.tour.skip}
+          </button>
+        </div>
+
+        <h3 className="text-lg mb-2" style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}>
+          {current.title}
+        </h3>
+        <p className="text-sm mb-5 leading-relaxed" style={{ color: T.textMid }}>
+          {current.desc}
+        </p>
+
+        {/* Progress dots */}
+        <div className="flex gap-1.5 mb-4">
+          {steps.map((_, i) => (
+            <div key={i} className="flex-1 h-1 rounded-full transition-colors"
+              style={{ backgroundColor: i <= stepIdx ? T.pinkDark : T.border }} />
+          ))}
+        </div>
+
+        <div className="flex justify-between gap-2">
+          <button onClick={prev} disabled={stepIdx === 0}
+            className="px-4 py-2 rounded-full text-xs font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            style={{ backgroundColor: "transparent", border: `1.5px solid ${T.border}`, color: T.textMid }}>
+            {t.tour.prev}
+          </button>
+          <button onClick={next}
+            className="px-4 py-2 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5"
+            style={{ backgroundColor: T.pinkDark, color: "#fff" }}>
+            {stepIdx === steps.length - 1 ? t.tour.finish : t.tour.next}
+            <ChevronRight size={12} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ============================================================
    MAIN APP
 ============================================================ */
 
@@ -4167,6 +4394,7 @@ export default function App() {
   const [lang, setLang] = useState(loadLang());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [focusedKbId, setFocusedKbId] = useState(null);
+  const [showTour, setShowTour] = useState(false);
 
   useEffect(() => { setTickets(loadTickets()); setShipments(loadShipments()); setLoaded(true); }, []);
   useEffect(() => { if (loaded) saveTickets(tickets); }, [tickets, loaded]);
@@ -4180,7 +4408,27 @@ export default function App() {
   useEffect(() => {
     if (currentUser === "operator") setView("dashboard");
     if (currentUser === "enduser") setView("catalog");
+
+    // Trigger tour on first login per role (persists per role)
+    if (currentUser) {
+      try {
+        const completed = JSON.parse(localStorage.getItem(TOUR_KEY) || "{}");
+        if (!completed[currentUser]) {
+          // Small delay so the UI settles before showing the tour
+          setTimeout(() => setShowTour(true), 400);
+        }
+      } catch (e) {}
+    }
   }, [currentUser]);
+
+  const finishTour = () => {
+    setShowTour(false);
+    try {
+      const completed = JSON.parse(localStorage.getItem(TOUR_KEY) || "{}");
+      completed[currentUser] = true;
+      localStorage.setItem(TOUR_KEY, JSON.stringify(completed));
+    } catch (e) {}
+  };
 
   const handleCreate = (ticket) => {
     setTickets([ticket, ...tickets]);
@@ -4258,8 +4506,9 @@ export default function App() {
         {/* Sidebar — desktop */}
         <aside className="hidden md:flex w-60 flex-col p-5" style={{ backgroundColor: T.bg2, borderRight: `1px solid ${T.border}` }}>
           <div className="flex items-center gap-2.5 mb-8 px-1">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${T.pinkDark}, ${T.pink})` }}>
-              <span style={{ color: "#fff", fontWeight: 700, fontSize: 14 }}>F</span>
+            <div className="w-11 h-11 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: T.bg2, border: `1px solid ${T.border}` }}>
+              <img src={MASCOT_URL} alt="FluxoOps" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
             <div>
               <div style={{ fontFamily: "'DM Serif Display', serif", color: T.text, fontSize: 17, lineHeight: 1 }}>{t.appName}</div>
@@ -4293,7 +4542,7 @@ export default function App() {
               const Icon = item.icon;
               const active = view === item.key;
               return (
-                <button key={item.key} onClick={() => { setView(item.key); setMobileMenuOpen(false); }}
+                <button key={item.key} data-tour={item.key} onClick={() => { setView(item.key); setMobileMenuOpen(false); }}
                   className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all"
                   style={{
                     backgroundColor: active ? T.pinkLight : "transparent",
@@ -4307,7 +4556,7 @@ export default function App() {
             })}
           </nav>
 
-          <div className="rounded-xl p-3.5 text-xs mb-3" style={{ backgroundColor: T.pinkLight, border: `1px solid ${T.pink}` }}>
+          <div data-tour="aiops" className="rounded-xl p-3.5 text-xs mb-3" style={{ backgroundColor: T.pinkLight, border: `1px solid ${T.pink}` }}>
             <div className="flex items-center gap-1.5 mb-1.5">
               <Sparkles size={11} style={{ color: T.pinkDark }} />
               <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: T.pinkDark }}>{t.aiopsLabel}</span>
@@ -4323,8 +4572,9 @@ export default function App() {
         {/* Mobile top bar */}
         <div className="md:hidden fixed top-0 left-0 right-0 z-40 px-4 py-3 flex items-center justify-between" style={{ backgroundColor: T.bg2, borderBottom: `1px solid ${T.border}` }}>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${T.pinkDark}, ${T.pink})` }}>
-              <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>F</span>
+            <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: T.bg2, border: `1px solid ${T.border}` }}>
+              <img src={MASCOT_URL} alt="FluxoOps" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
             <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: 16 }}>{t.appName}</span>
           </div>
@@ -4407,6 +4657,28 @@ export default function App() {
       {selectedShipment && (
         <ShipmentDetail shipment={selectedShipment} onClose={() => setSelectedShipment(null)} onUpdate={handleUpdateShipment} lang={lang} currentUser={currentUser} />
       )}
+
+      {/* Quick tour — shows on first login per role */}
+      {showTour && currentUser && (() => {
+        const operatorTourSteps = [
+          { navKey: "dashboard", ...t.tour.operatorSteps[0] },
+          { navKey: "catalog", ...t.tour.operatorSteps[1] },
+          { navKey: "tickets", ...t.tour.operatorSteps[2] },
+          { navKey: "new", ...t.tour.operatorSteps[3] },
+          { navKey: "logistics", ...t.tour.operatorSteps[4] },
+          { navKey: "kb", ...t.tour.operatorSteps[5] },
+          { navKey: "aiops", ...t.tour.operatorSteps[6] },
+        ];
+        const enduserTourSteps = [
+          { navKey: "catalog", ...t.tour.enduserSteps[0] },
+          { navKey: "new", ...t.tour.enduserSteps[1] },
+          { navKey: "myTickets", ...t.tour.enduserSteps[2] },
+          { navKey: "myDevices", ...t.tour.enduserSteps[3] },
+          { navKey: "kb", ...t.tour.enduserSteps[4] },
+        ];
+        const tourSteps = currentUser === "operator" ? operatorTourSteps : enduserTourSteps;
+        return <QuickTour steps={tourSteps} onFinish={finishTour} lang={lang} />;
+      })()}
     </div>
   );
 }
