@@ -4286,18 +4286,35 @@ const QuickTour = ({ steps, onFinish, lang }) => {
       }
     : { top: "50%", left: "50%", transform: "translate(-50%, -50%)" };
 
+  // Build 4 dark rectangles around the anchor to create a "spotlight" effect.
+  // This is more reliable than mix-blend or huge box-shadows.
+  const overlayRects = anchorRect
+    ? [
+        { top: 0, left: 0, width: "100vw", height: anchorRect.top - 4 },
+        { top: anchorRect.top - 4, left: 0, width: anchorRect.left - 4, height: anchorRect.height + 8 },
+        { top: anchorRect.top - 4, left: anchorRect.left + anchorRect.width + 4, right: 0, height: anchorRect.height + 8 },
+        { top: anchorRect.top + anchorRect.height + 4, left: 0, width: "100vw", bottom: 0 },
+      ]
+    : [{ top: 0, left: 0, right: 0, bottom: 0 }];
+
   return (
-    <div className="fixed inset-0 z-[100]" style={{ backgroundColor: "rgba(44,40,37,0.5)" }} onClick={skip}>
-      {/* Highlight ring around anchor */}
+    <div className="fixed inset-0 z-[100]" onClick={skip}>
+      {/* Dark overlay rectangles around the anchor (or full screen if no anchor) */}
+      {overlayRects.map((r, i) => (
+        <div key={i} className="absolute" style={{ ...r, backgroundColor: "rgba(44,40,37,0.5)" }} />
+      ))}
+
+      {/* Pink highlight ring on top of the anchor */}
       {anchorRect && (
-        <div className="absolute pointer-events-none rounded-xl transition-all"
+        <div className="absolute pointer-events-none rounded-xl"
           style={{
             top: anchorRect.top - 4,
             left: anchorRect.left - 4,
             width: anchorRect.width + 8,
             height: anchorRect.height + 8,
-            backgroundColor: T.surface,
-            boxShadow: `0 0 0 4px ${T.pink}, 0 0 0 9999px rgba(44,40,37,0.5)`,
+            border: `3px solid ${T.pink}`,
+            boxShadow: `0 0 0 1px ${T.pinkDark}, 0 4px 20px rgba(184,92,114,0.4)`,
+            animation: "tourPulse 2s ease-in-out infinite",
           }} />
       )}
 
@@ -4500,6 +4517,7 @@ export default function App() {
         input::placeholder, textarea::placeholder { color: ${T.textLight}; }
         select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A09890' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 14px; padding-right: 2rem; }
         input:focus, textarea:focus, select:focus { border-color: ${T.pinkDark} !important; }
+        @keyframes tourPulse { 0%,100% { box-shadow: 0 0 0 1px ${T.pinkDark}, 0 4px 20px rgba(184,92,114,0.4); } 50% { box-shadow: 0 0 0 1px ${T.pinkDark}, 0 4px 28px rgba(184,92,114,0.7); } }
       `}</style>
 
       <div className="flex min-h-screen">
