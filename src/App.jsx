@@ -34,6 +34,15 @@ import {
   ChevronRight,
   CheckCircle2,
   ShieldCheck,
+  Package,
+  Truck,
+  MapPin,
+  PackageCheck,
+  PackageX,
+  Plane,
+  Globe2,
+  ArrowRightLeft,
+  Building2,
 } from "lucide-react";
 import {
   XAxis,
@@ -111,6 +120,8 @@ const i18n = {
       myTickets: "Meus tickets",
       newTicket: "Novo ticket",
       kb: "Base de Conhecimento",
+      logistics: "Logística",
+      myDevices: "Meus devices",
       logout: "Sair",
     },
 
@@ -272,24 +283,110 @@ const i18n = {
       openTicket: "Abrir ticket",
     },
 
-    detail: {
-      description: "Descrição",
-      aiAnalysis: "Análise da IA",
-      slaStatus: "Status do SLA",
-      breached: "Estourado",
-      atRisk: "Em risco",
-      onTrack: "Dentro do prazo",
-      slaTarget: "Alvo",
-      hoursTotal: "h totais",
-      changeStatus: "Mudar status",
-      changeInfo: "Informações da mudança",
-      window: "Janela",
-      risk: "Risco",
-      rollback: "Plano de rollback",
+    logistics: {
+      eyebrow: "Asset Logistics",
+      title: "Logística de Devices",
+      desc: "Acompanhe o envio e a recepção de equipamentos para colaboradores em diferentes países. Cada device é registrado no inventário (CMDB) ao chegar.",
+      myEyebrow: "Meu device",
+      myTitle: "Meus devices",
+      myDesc: "Acompanhe o status de envio dos equipamentos atribuídos a você.",
+      kpiInTransit: "Em trânsito",
+      kpiPending: "Aguardando registro",
+      kpiDelivered: "Entregues hoje",
+      kpiTotal: "Total ativo",
+      pipelineEyebrow: "Pipeline",
+      pipelineTitle: "Status das remessas",
+      mapEyebrow: "Distribuição global",
+      mapTitle: "Destinos",
+      shipmentList: "Remessas",
+      newShipment: "Nova remessa",
+      newShipmentDesc: "Registrar novo envio ou recepção de device.",
+      operationType: "Tipo de operação",
+      checkout: "Check-out (envio)",
+      checkin: "Check-in (devolução)",
+      deviceInfo: "Informações do device",
+      deviceType: "Tipo de device",
+      deviceTypeLaptop: "Notebook",
+      deviceTypeMobile: "Celular",
+      deviceTypeDock: "Dock station",
+      deviceTypeMonitor: "Monitor",
+      deviceTypeOther: "Outro",
+      deviceModel: "Modelo",
+      deviceModelPh: "Ex: Lenovo ThinkPad T14 Gen 4",
+      deviceSerial: "Número de série",
+      deviceSerialPh: "Ex: PF3X9K2L",
+      deviceAssetTag: "Asset tag",
+      deviceAssetTagPh: "Ex: AST-001234",
+      shipmentDetails: "Detalhes do envio",
+      origin: "Origem",
+      originPh: "Escritório central / Lisboa",
+      destination: "Destino",
+      destinationCountry: "País",
+      destinationCity: "Cidade",
+      destinationCityPh: "Ex: Estocolmo",
+      destinationAddress: "Endereço completo",
+      destinationAddressPh: "Rua, número, código postal...",
+      recipient: "Destinatário",
+      recipientPh: "Nome do colaborador",
+      carrier: "Transportadora",
+      carrierPh: "DHL, FedEx, UPS, Correios...",
+      trackingNumber: "Código de rastreio",
+      trackingNumberPh: "Código fornecido pela transportadora",
+      expectedDelivery: "Entrega esperada",
+      linkedTicket: "Ticket relacionado (opcional)",
+      linkedTicketPh: "Ex: REQ-1003",
+      submit: "Registrar remessa",
+      tableId: "ID",
+      tableDevice: "Device",
+      tableDest: "Destino",
+      tableRecipient: "Destinatário",
+      tableStatus: "Status",
+      tableShipped: "Enviado",
+      empty: "Nenhuma remessa encontrada.",
+      countries: {
+        PT: "Portugal",
+        SE: "Suécia",
+        ES: "Espanha",
+        FR: "França",
+        DE: "Alemanha",
+        IT: "Itália",
+        UK: "Reino Unido",
+        NL: "Holanda",
+        BR: "Brasil",
+        US: "Estados Unidos",
+      },
+      detail: {
+        eyebrow: "Detalhes da remessa",
+        deviceSection: "Device",
+        shipmentSection: "Envio",
+        timeline: "Linha do tempo",
+        progress: "Progresso",
+        registerInCmdb: "Registrar no CMDB",
+        cmdbHint: "Marca o device como recebido e adicionado ao inventário corporativo.",
+        cmdbDone: "Registrado no inventário",
+        type: "Tipo",
+        operation: "Operação",
+        sent: "Enviado em",
+        expected: "Previsão",
+        delivered: "Entregue em",
+        registered: "Registrado em",
+        notYet: "—",
+        changeStatus: "Atualizar status",
+      },
     },
 
-    priorities: {
-      P1: "P1 — Crítico",
+    shipmentStatuses: {
+      preparing: "Preparando",
+      packed: "Embalado",
+      shipped: "Enviado",
+      in_transit: "Em trânsito",
+      delivered: "Entregue",
+      registered: "Registrado no CMDB",
+      returned: "Devolvido",
+      cancelled: "Cancelado",
+    },
+
+    detail: {
       P2: "P2 — Alto",
       P3: "P3 — Médio",
       P4: "P4 — Baixo",
@@ -353,6 +450,8 @@ const i18n = {
       myTickets: "My tickets",
       newTicket: "New ticket",
       kb: "Knowledge Base",
+      logistics: "Logistics",
+      myDevices: "My devices",
       logout: "Sign out",
     },
 
@@ -514,24 +613,110 @@ const i18n = {
       openTicket: "Open ticket",
     },
 
-    detail: {
-      description: "Description",
-      aiAnalysis: "AI Analysis",
-      slaStatus: "SLA status",
-      breached: "Breached",
-      atRisk: "At risk",
-      onTrack: "On track",
-      slaTarget: "Target",
-      hoursTotal: "h total",
-      changeStatus: "Change status",
-      changeInfo: "Change information",
-      window: "Window",
-      risk: "Risk",
-      rollback: "Rollback plan",
+    logistics: {
+      eyebrow: "Asset Logistics",
+      title: "Device Logistics",
+      desc: "Track shipping and receipt of equipment for employees in different countries. Each device is registered in the inventory (CMDB) upon arrival.",
+      myEyebrow: "My device",
+      myTitle: "My devices",
+      myDesc: "Track the shipping status of equipment assigned to you.",
+      kpiInTransit: "In transit",
+      kpiPending: "Pending registration",
+      kpiDelivered: "Delivered today",
+      kpiTotal: "Active total",
+      pipelineEyebrow: "Pipeline",
+      pipelineTitle: "Shipment status",
+      mapEyebrow: "Global distribution",
+      mapTitle: "Destinations",
+      shipmentList: "Shipments",
+      newShipment: "New shipment",
+      newShipmentDesc: "Register a new device shipment or return.",
+      operationType: "Operation type",
+      checkout: "Check-out (shipping)",
+      checkin: "Check-in (return)",
+      deviceInfo: "Device information",
+      deviceType: "Device type",
+      deviceTypeLaptop: "Laptop",
+      deviceTypeMobile: "Mobile phone",
+      deviceTypeDock: "Dock station",
+      deviceTypeMonitor: "Monitor",
+      deviceTypeOther: "Other",
+      deviceModel: "Model",
+      deviceModelPh: "E.g. Lenovo ThinkPad T14 Gen 4",
+      deviceSerial: "Serial number",
+      deviceSerialPh: "E.g. PF3X9K2L",
+      deviceAssetTag: "Asset tag",
+      deviceAssetTagPh: "E.g. AST-001234",
+      shipmentDetails: "Shipment details",
+      origin: "Origin",
+      originPh: "Headquarters / Lisbon",
+      destination: "Destination",
+      destinationCountry: "Country",
+      destinationCity: "City",
+      destinationCityPh: "E.g. Stockholm",
+      destinationAddress: "Full address",
+      destinationAddressPh: "Street, number, postal code...",
+      recipient: "Recipient",
+      recipientPh: "Employee name",
+      carrier: "Carrier",
+      carrierPh: "DHL, FedEx, UPS, local mail...",
+      trackingNumber: "Tracking number",
+      trackingNumberPh: "Code provided by the carrier",
+      expectedDelivery: "Expected delivery",
+      linkedTicket: "Linked ticket (optional)",
+      linkedTicketPh: "E.g. REQ-1003",
+      submit: "Register shipment",
+      tableId: "ID",
+      tableDevice: "Device",
+      tableDest: "Destination",
+      tableRecipient: "Recipient",
+      tableStatus: "Status",
+      tableShipped: "Shipped",
+      empty: "No shipments found.",
+      countries: {
+        PT: "Portugal",
+        SE: "Sweden",
+        ES: "Spain",
+        FR: "France",
+        DE: "Germany",
+        IT: "Italy",
+        UK: "United Kingdom",
+        NL: "Netherlands",
+        BR: "Brazil",
+        US: "United States",
+      },
+      detail: {
+        eyebrow: "Shipment details",
+        deviceSection: "Device",
+        shipmentSection: "Shipment",
+        timeline: "Timeline",
+        progress: "Progress",
+        registerInCmdb: "Register in CMDB",
+        cmdbHint: "Marks the device as received and added to corporate inventory.",
+        cmdbDone: "Registered in inventory",
+        type: "Type",
+        operation: "Operation",
+        sent: "Sent on",
+        expected: "Expected",
+        delivered: "Delivered on",
+        registered: "Registered on",
+        notYet: "—",
+        changeStatus: "Update status",
+      },
     },
 
-    priorities: {
-      P1: "P1 — Critical",
+    shipmentStatuses: {
+      preparing: "Preparing",
+      packed: "Packed",
+      shipped: "Shipped",
+      in_transit: "In transit",
+      delivered: "Delivered",
+      registered: "Registered in CMDB",
+      returned: "Returned",
+      cancelled: "Cancelled",
+    },
+
+    detail: {
       P2: "P2 — High",
       P3: "P3 — Medium",
       P4: "P4 — Low",
@@ -1162,6 +1347,86 @@ Same catalog flow, but mention in the notes field which current license you have
 ============================================================ */
 
 const SERVICE_CATALOG = [
+  // ========== Asset Management / Device Logistics ==========
+  {
+    id: "svc-asset-01",
+    name: { pt: "Asset handover (entrega de novo device)", en: "Asset handover (new device delivery)" },
+    desc: {
+      pt: "Entrega de novo notebook ou device para colaborador, com Autopilot pré-configurado e envio internacional.",
+      en: "Delivery of new laptop or device to employee, with Autopilot pre-configured and international shipping.",
+    },
+    category: "hardware",
+    subKey: 0,
+    defaultPriority: "P3",
+    estimatedTime: { pt: "3-5 dias úteis", en: "3-5 business days" },
+    approval: true,
+  },
+  {
+    id: "svc-asset-02",
+    name: { pt: "Windows Autopilot enrollment", en: "Windows Autopilot enrollment" },
+    desc: {
+      pt: "Pré-provisionamento Zero Touch via Autopilot. Device chega ao colaborador pronto pra usar.",
+      en: "Zero Touch pre-provisioning via Autopilot. Device arrives ready to use.",
+    },
+    category: "hardware",
+    subKey: 0,
+    defaultPriority: "P3",
+    estimatedTime: { pt: "1 dia útil", en: "1 business day" },
+    approval: false,
+  },
+  {
+    id: "svc-asset-03",
+    name: { pt: "Device decommissioning", en: "Device decommissioning" },
+    desc: {
+      pt: "Descomissionamento seguro: wipe certificado, remoção do CMDB, descarte ou reaproveitamento.",
+      en: "Secure decommissioning: certified wipe, CMDB removal, disposal or reuse.",
+    },
+    category: "hardware",
+    subKey: 4,
+    defaultPriority: "P3",
+    estimatedTime: { pt: "5 dias úteis", en: "5 business days" },
+    approval: true,
+  },
+  {
+    id: "svc-asset-04",
+    name: { pt: "Device return (offboarding)", en: "Device return (offboarding)" },
+    desc: {
+      pt: "Coleta e devolução de device de colaborador desligado. Inclui wipe e re-registro no inventário.",
+      en: "Pickup and return of device from departing employee. Includes wipe and re-registration in inventory.",
+    },
+    category: "hardware",
+    subKey: 0,
+    defaultPriority: "P2",
+    estimatedTime: { pt: "3-5 dias úteis", en: "3-5 business days" },
+    approval: true,
+  },
+  {
+    id: "svc-asset-05",
+    name: { pt: "Asset transfer (transferência entre colaboradores)", en: "Asset transfer (between employees)" },
+    desc: {
+      pt: "Transferência de propriedade de device de um colaborador para outro com atualização do CMDB.",
+      en: "Device ownership transfer from one employee to another with CMDB update.",
+    },
+    category: "hardware",
+    subKey: 4,
+    defaultPriority: "P3",
+    estimatedTime: { pt: "2 dias úteis", en: "2 business days" },
+    approval: true,
+  },
+  {
+    id: "svc-asset-06",
+    name: { pt: "Reportar device perdido / roubado", en: "Report lost / stolen device" },
+    desc: {
+      pt: "Bloqueio remoto imediato, wipe via Intune, abertura de incidente de segurança e BO se necessário.",
+      en: "Immediate remote block, Intune wipe, security incident opening and police report if needed.",
+    },
+    category: "security",
+    subKey: 4,
+    defaultPriority: "P1",
+    estimatedTime: { pt: "Imediato", en: "Immediate" },
+    approval: false,
+  },
+  // ========== IAM ==========
   {
     id: "svc-iam-01",
     name: { pt: "Reset de senha", en: "Password reset" },
@@ -1726,6 +1991,186 @@ const loadLang = () => {
 };
 const saveLang = (lang) => {
   try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+};
+
+/* ============================================================
+   SHIPMENTS / LOGISTICS
+============================================================ */
+
+const SHIPMENT_STATUSES = {
+  preparing: { color: T.textMid, order: 1 },
+  packed: { color: T.blueDark, order: 2 },
+  shipped: { color: T.catCloud, order: 3 },
+  in_transit: { color: T.yellowDark, order: 4 },
+  delivered: { color: T.greenDark, order: 5 },
+  registered: { color: T.catApps, order: 6 },
+  returned: { color: T.pinkDark, order: 7 },
+  cancelled: { color: T.textLight, order: 8 },
+};
+
+const SHIPMENT_FLOW = ["preparing", "packed", "shipped", "in_transit", "delivered", "registered"];
+
+// Country coordinates for the mini-map (approx capital lat/lng)
+const COUNTRY_COORDS = {
+  PT: { lat: 38.7, lng: -9.1, flag: "🇵🇹" },
+  SE: { lat: 59.3, lng: 18.0, flag: "🇸🇪" },
+  ES: { lat: 40.4, lng: -3.7, flag: "🇪🇸" },
+  FR: { lat: 48.8, lng: 2.3, flag: "🇫🇷" },
+  DE: { lat: 52.5, lng: 13.4, flag: "🇩🇪" },
+  IT: { lat: 41.9, lng: 12.5, flag: "🇮🇹" },
+  UK: { lat: 51.5, lng: -0.1, flag: "🇬🇧" },
+  NL: { lat: 52.4, lng: 4.9, flag: "🇳🇱" },
+  BR: { lat: -15.8, lng: -47.9, flag: "🇧🇷" },
+  US: { lat: 38.9, lng: -77.0, flag: "🇺🇸" },
+};
+
+const newShipmentId = () => `SHIP-${Math.floor(1000 + Math.random() * 9000)}`;
+
+const SEED_SHIPMENTS = [
+  {
+    id: "SHIP-1001",
+    operation: "checkout",
+    deviceType: "laptop",
+    deviceModel: "Lenovo ThinkPad T14 Gen 4",
+    deviceSerial: "PF3X9K2L",
+    deviceAssetTag: "AST-001234",
+    origin: "Lisboa, PT",
+    destinationCountry: "SE",
+    destinationCity: "Estocolmo",
+    destinationAddress: "Drottninggatan 71, 111 36 Stockholm",
+    recipient: "Erik Andersson",
+    carrier: "DHL Express",
+    trackingNumber: "JD0140698888888888",
+    status: "in_transit",
+    createdAt: Date.now() - 1000 * 60 * 60 * 36,
+    shippedAt: Date.now() - 1000 * 60 * 60 * 30,
+    expectedDelivery: Date.now() + 1000 * 60 * 60 * 24,
+    deliveredAt: null,
+    registeredAt: null,
+    linkedTicket: "REQ-1003",
+  },
+  {
+    id: "SHIP-1002",
+    operation: "checkout",
+    deviceType: "laptop",
+    deviceModel: "Apple MacBook Pro 14 M3",
+    deviceSerial: "C02XK0LMQ6L4",
+    deviceAssetTag: "AST-001235",
+    origin: "Lisboa, PT",
+    destinationCountry: "ES",
+    destinationCity: "Madrid",
+    destinationAddress: "Calle de Alcalá 42, 28014 Madrid",
+    recipient: "María García",
+    carrier: "DHL Express",
+    trackingNumber: "JD0140698999999999",
+    status: "delivered",
+    createdAt: Date.now() - 1000 * 60 * 60 * 72,
+    shippedAt: Date.now() - 1000 * 60 * 60 * 60,
+    expectedDelivery: Date.now() - 1000 * 60 * 60 * 6,
+    deliveredAt: Date.now() - 1000 * 60 * 60 * 4,
+    registeredAt: null,
+    linkedTicket: null,
+  },
+  {
+    id: "SHIP-1003",
+    operation: "checkout",
+    deviceType: "laptop",
+    deviceModel: "Dell Latitude 7440",
+    deviceSerial: "9F2H8L5K",
+    deviceAssetTag: "AST-001236",
+    origin: "Lisboa, PT",
+    destinationCountry: "PT",
+    destinationCity: "Porto",
+    destinationAddress: "Rua de Santa Catarina 245, 4000-447 Porto",
+    recipient: "João Ferreira",
+    carrier: "CTT Expresso",
+    trackingNumber: "DE123456789PT",
+    status: "registered",
+    createdAt: Date.now() - 1000 * 60 * 60 * 120,
+    shippedAt: Date.now() - 1000 * 60 * 60 * 110,
+    expectedDelivery: Date.now() - 1000 * 60 * 60 * 96,
+    deliveredAt: Date.now() - 1000 * 60 * 60 * 90,
+    registeredAt: Date.now() - 1000 * 60 * 60 * 80,
+    linkedTicket: null,
+  },
+  {
+    id: "SHIP-1004",
+    operation: "checkout",
+    deviceType: "laptop",
+    deviceModel: "Lenovo ThinkPad X1 Carbon Gen 11",
+    deviceSerial: "PF4X1K8M",
+    deviceAssetTag: "AST-001237",
+    origin: "Lisboa, PT",
+    destinationCountry: "DE",
+    destinationCity: "Berlim",
+    destinationAddress: "Friedrichstraße 68, 10117 Berlin",
+    recipient: "Hans Müller",
+    carrier: "DHL Express",
+    trackingNumber: "JD0140697777777777",
+    status: "preparing",
+    createdAt: Date.now() - 1000 * 60 * 60 * 4,
+    shippedAt: null,
+    expectedDelivery: Date.now() + 1000 * 60 * 60 * 96,
+    deliveredAt: null,
+    registeredAt: null,
+    linkedTicket: "REQ-1008",
+  },
+  {
+    id: "SHIP-1005",
+    operation: "checkin",
+    deviceType: "laptop",
+    deviceModel: "Lenovo ThinkPad T14 Gen 2",
+    deviceSerial: "PF2A5K9X",
+    deviceAssetTag: "AST-000891",
+    origin: "Barcelona, ES",
+    destinationCountry: "PT",
+    destinationCity: "Lisboa",
+    destinationAddress: "HQ — Av. da Liberdade 110, 1250-146 Lisboa",
+    recipient: "IT Asset Management",
+    carrier: "DHL Express",
+    trackingNumber: "JD0140696666666666",
+    status: "shipped",
+    createdAt: Date.now() - 1000 * 60 * 60 * 24,
+    shippedAt: Date.now() - 1000 * 60 * 60 * 18,
+    expectedDelivery: Date.now() + 1000 * 60 * 60 * 36,
+    deliveredAt: null,
+    registeredAt: null,
+    linkedTicket: null,
+  },
+  {
+    id: "SHIP-1006",
+    operation: "checkout",
+    deviceType: "mobile",
+    deviceModel: "iPhone 15 Pro 128GB",
+    deviceSerial: "FFMW10ABCDEF",
+    deviceAssetTag: "AST-001238",
+    origin: "Lisboa, PT",
+    destinationCountry: "FR",
+    destinationCity: "Paris",
+    destinationAddress: "Avenue des Champs-Élysées 99, 75008 Paris",
+    recipient: "Sophie Martin",
+    carrier: "FedEx",
+    trackingNumber: "789456123654",
+    status: "delivered",
+    createdAt: Date.now() - 1000 * 60 * 60 * 48,
+    shippedAt: Date.now() - 1000 * 60 * 60 * 40,
+    expectedDelivery: Date.now() - 1000 * 60 * 60 * 12,
+    deliveredAt: Date.now() - 1000 * 60 * 60 * 8,
+    registeredAt: null,
+    linkedTicket: null,
+  },
+];
+
+const SHIPMENTS_KEY = "fluxoops-shipments-v1";
+const loadShipments = () => {
+  try {
+    const raw = localStorage.getItem(SHIPMENTS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return SEED_SHIPMENTS;
+};
+const saveShipments = (s) => {
+  try { localStorage.setItem(SHIPMENTS_KEY, JSON.stringify(s)); } catch (e) {}
 };
 
 
@@ -3018,6 +3463,686 @@ const KnowledgeBase = ({ lang, focusedArticleId, onClearFocus, onOpenTicket }) =
 
 
 /* ============================================================
+   LOGISTICS — pipeline + map + list + new shipment
+============================================================ */
+
+const ShipmentStatusPill = ({ status, t }) => {
+  const cfg = SHIPMENT_STATUSES[status];
+  return <Pill color={cfg.color}>{t.shipmentStatuses[status]}</Pill>;
+};
+
+const ShipmentPipeline = ({ shipments, lang }) => {
+  const t = i18n[lang];
+  const statusCounts = useMemo(() => {
+    const counts = {};
+    SHIPMENT_FLOW.forEach((s) => (counts[s] = 0));
+    shipments.forEach((sh) => {
+      if (counts[sh.status] !== undefined) counts[sh.status]++;
+    });
+    return counts;
+  }, [shipments]);
+
+  const stageIcons = {
+    preparing: Package,
+    packed: PackageCheck,
+    shipped: Truck,
+    in_transit: Plane,
+    delivered: PackageCheck,
+    registered: CheckCircle2,
+  };
+
+  return (
+    <Card className="p-6 mb-6">
+      <Eyebrow>{t.logistics.pipelineEyebrow}</Eyebrow>
+      <h3 className="text-xl mb-5" style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}>
+        {t.logistics.pipelineTitle}
+      </h3>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {SHIPMENT_FLOW.map((stage, idx) => {
+          const cfg = SHIPMENT_STATUSES[stage];
+          const Icon = stageIcons[stage] || Package;
+          const count = statusCounts[stage] || 0;
+          return (
+            <div key={stage} className="relative">
+              <div className="rounded-xl p-3.5 transition-all hover:translate-y-[-2px]"
+                style={{ backgroundColor: T.bg2, border: `1px solid ${cfg.color}30` }}>
+                <div className="flex items-center justify-between mb-2">
+                  <Icon size={16} style={{ color: cfg.color }} />
+                  <span className="text-2xl tabular-nums" style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}>
+                    {count}
+                  </span>
+                </div>
+                <div className="text-[10px] font-semibold uppercase tracking-wider leading-tight" style={{ color: cfg.color }}>
+                  {t.shipmentStatuses[stage]}
+                </div>
+              </div>
+              {idx < SHIPMENT_FLOW.length - 1 && (
+                <ChevronRight size={14} className="hidden lg:block absolute top-1/2 -right-3 -translate-y-1/2"
+                  style={{ color: T.textLight, zIndex: 1 }} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+};
+
+// Mini-map: simple equirectangular projection over a soft world background
+const ShipmentMap = ({ shipments, lang }) => {
+  const t = i18n[lang];
+
+  // Aggregate counts by destination
+  const byCountry = useMemo(() => {
+    const map = {};
+    shipments.forEach((sh) => {
+      if (sh.status === "registered" || sh.status === "cancelled") return;
+      const c = sh.destinationCountry;
+      if (!map[c]) map[c] = 0;
+      map[c]++;
+    });
+    return map;
+  }, [shipments]);
+
+  // Project lat/lng to %
+  const project = (lat, lng) => {
+    // Focused on Europe + a bit of Atlantic; clamp lng to [-30, 40], lat to [25, 70]
+    const minLng = -30, maxLng = 40;
+    const minLat = 25, maxLat = 70;
+    const x = ((lng - minLng) / (maxLng - minLng)) * 100;
+    const y = ((maxLat - lat) / (maxLat - minLat)) * 100;
+    return { x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) };
+  };
+
+  const activeCountries = Object.entries(byCountry).filter(([_, n]) => n > 0);
+
+  return (
+    <Card className="p-6 mb-6">
+      <Eyebrow>{t.logistics.mapEyebrow}</Eyebrow>
+      <h3 className="text-xl mb-5" style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}>
+        {t.logistics.mapTitle}
+      </h3>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* Map */}
+        <div className="md:col-span-2 rounded-2xl relative overflow-hidden"
+          style={{ backgroundColor: T.bg2, border: `1px solid ${T.border}`, aspectRatio: "16/10" }}>
+          {/* Soft Europe-ish gradient as a backdrop */}
+          <div className="absolute inset-0" style={{
+            background: `radial-gradient(ellipse at 45% 50%, ${T.blueLight} 0%, ${T.bg2} 70%)`,
+          }} />
+          {/* Decorative continent shape (very abstract) */}
+          <svg className="absolute inset-0 w-full h-full opacity-40" viewBox="0 0 100 62.5" preserveAspectRatio="none">
+            <path d="M 20 25 Q 25 18, 35 20 Q 45 15, 55 22 Q 65 18, 70 28 Q 75 35, 65 45 Q 55 50, 45 48 Q 35 50, 28 42 Q 22 35, 20 25 Z"
+              fill={T.blue} opacity="0.3" />
+            <path d="M 12 32 Q 18 28, 22 30 Q 25 35, 20 40 Q 15 38, 12 32 Z" fill={T.blue} opacity="0.3" />
+          </svg>
+
+          {/* Origin pin (Lisbon) */}
+          {(() => {
+            const o = project(COUNTRY_COORDS.PT.lat, COUNTRY_COORDS.PT.lng);
+            return (
+              <div className="absolute" style={{ left: `${o.x}%`, top: `${o.y}%`, transform: "translate(-50%, -50%)" }}>
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: T.pinkDark, boxShadow: `0 0 0 4px ${T.pinkLight}` }} />
+                <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 text-[9px] font-bold whitespace-nowrap"
+                  style={{ color: T.pinkDark }}>
+                  HQ
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Destination pins */}
+          {activeCountries.map(([country, count]) => {
+            if (country === "PT") return null;
+            const coord = COUNTRY_COORDS[country];
+            if (!coord) return null;
+            const p = project(coord.lat, coord.lng);
+            return (
+              <div key={country} className="absolute" style={{ left: `${p.x}%`, top: `${p.y}%`, transform: "translate(-50%, -50%)" }}>
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-full animate-ping" style={{ backgroundColor: T.yellowDark, opacity: 0.4 }} />
+                  <div className="relative w-3 h-3 rounded-full" style={{ backgroundColor: T.yellowDark, boxShadow: `0 0 0 4px ${T.yellowLight}` }} />
+                </div>
+                <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 text-[10px] font-bold whitespace-nowrap"
+                  style={{ color: T.text }}>
+                  {coord.flag} {count}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Legend / list */}
+        <div className="space-y-2">
+          {activeCountries.length === 0 && (
+            <div className="text-sm text-center py-6" style={{ color: T.textLight }}>—</div>
+          )}
+          {activeCountries.sort((a, b) => b[1] - a[1]).map(([country, count]) => {
+            const coord = COUNTRY_COORDS[country];
+            return (
+              <div key={country} className="flex items-center justify-between px-3 py-2 rounded-lg"
+                style={{ backgroundColor: T.bg2 }}>
+                <div className="flex items-center gap-2">
+                  <span className="text-base">{coord?.flag}</span>
+                  <span className="text-sm font-medium" style={{ color: T.text }}>
+                    {t.logistics.countries[country] || country}
+                  </span>
+                </div>
+                <span className="text-sm tabular-nums font-semibold" style={{ color: T.pinkDark }}>{count}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </Card>
+  );
+};
+
+const LogisticsView = ({ shipments, onSelect, onNewShipment, lang, currentUser }) => {
+  const t = i18n[lang];
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const stats = useMemo(() => {
+    const inTransit = shipments.filter((s) => ["shipped", "in_transit"].includes(s.status)).length;
+    const pendingRegistration = shipments.filter((s) => s.status === "delivered").length;
+    const deliveredToday = shipments.filter((s) => s.deliveredAt && Date.now() - s.deliveredAt < 86400000).length;
+    const total = shipments.filter((s) => !["registered", "cancelled"].includes(s.status)).length;
+    return { inTransit, pendingRegistration, deliveredToday, total };
+  }, [shipments]);
+
+  const filtered = useMemo(() => {
+    return shipments
+      .filter((s) => statusFilter === "all" || s.status === statusFilter)
+      .filter((s) => {
+        if (!search) return true;
+        const q = search.toLowerCase();
+        return (
+          s.id.toLowerCase().includes(q) ||
+          s.deviceModel.toLowerCase().includes(q) ||
+          s.deviceSerial.toLowerCase().includes(q) ||
+          s.recipient.toLowerCase().includes(q) ||
+          s.destinationCity.toLowerCase().includes(q) ||
+          (s.trackingNumber || "").toLowerCase().includes(q)
+        );
+      })
+      .sort((a, b) => b.createdAt - a.createdAt);
+  }, [shipments, search, statusFilter]);
+
+  return (
+    <div>
+      <div className="flex items-start justify-between gap-4 flex-wrap mb-6">
+        <div>
+          <PageTitle eyebrow={t.logistics.eyebrow} title={t.logistics.title} />
+        </div>
+        <button onClick={onNewShipment}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all"
+          style={{ backgroundColor: T.pinkDark, color: "#fff" }}>
+          <PlusCircle size={14} />
+          {t.logistics.newShipment}
+        </button>
+      </div>
+      <p className="text-base max-w-3xl mb-8" style={{ color: T.textMid, lineHeight: 1.6 }}>
+        {t.logistics.desc}
+      </p>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <KpiCard icon={Truck} label={t.logistics.kpiInTransit} value={stats.inTransit} accent={T.yellowDark} bg={T.yellowLight} sub="" />
+        <KpiCard icon={PackageCheck} label={t.logistics.kpiPending} value={stats.pendingRegistration} accent={T.catApps} bg={T.catAppsLight} sub="" />
+        <KpiCard icon={CheckCircle2} label={t.logistics.kpiDelivered} value={stats.deliveredToday} accent={T.greenDark} bg={T.greenLight} sub="" />
+        <KpiCard icon={Globe2} label={t.logistics.kpiTotal} value={stats.total} accent={T.blueDark} bg={T.blueLight} sub="" />
+      </div>
+
+      <ShipmentPipeline shipments={shipments} lang={lang} />
+      <ShipmentMap shipments={shipments} lang={lang} />
+
+      {/* List */}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <div className="relative flex-1 min-w-[260px]">
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: T.textLight }} />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t.tickets.searchPlaceholder}
+            className="w-full pl-11 pr-4 py-3 rounded-full text-sm focus:outline-none" style={inputStyle} />
+        </div>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-4 py-2.5 rounded-full text-sm font-medium cursor-pointer focus:outline-none" style={inputStyle}>
+          <option value="all">{t.tickets.filterAll}</option>
+          {Object.keys(SHIPMENT_STATUSES).map((s) => (
+            <option key={s} value={s}>{t.shipmentStatuses[s]}</option>
+          ))}
+        </select>
+      </div>
+
+      <Card>
+        <div className="grid grid-cols-12 gap-3 px-6 py-3 text-[10px] font-semibold uppercase tracking-wider"
+          style={{ borderBottom: `1px solid ${T.border}`, color: T.textLight }}>
+          <div className="col-span-2">{t.logistics.tableId}</div>
+          <div className="col-span-3">{t.logistics.tableDevice}</div>
+          <div className="col-span-2">{t.logistics.tableDest}</div>
+          <div className="col-span-2">{t.logistics.tableRecipient}</div>
+          <div className="col-span-2">{t.logistics.tableStatus}</div>
+          <div className="col-span-1 text-right">{t.logistics.tableShipped}</div>
+        </div>
+        {filtered.length === 0 && (
+          <div className="p-12 text-center text-sm" style={{ color: T.textMid }}>{t.logistics.empty}</div>
+        )}
+        {filtered.map((s, idx) => {
+          const coord = COUNTRY_COORDS[s.destinationCountry];
+          return (
+            <button key={s.id} onClick={() => onSelect(s)}
+              className="w-full grid grid-cols-12 gap-3 px-6 py-4 text-left items-center transition-colors"
+              style={{ borderBottom: idx === filtered.length - 1 ? "none" : `1px solid ${T.border}` }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = T.bg2)}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}>
+              <div className="col-span-2">
+                <div className="text-xs tabular-nums font-medium" style={{ color: T.text }}>{s.id}</div>
+                <div className="text-[10px] uppercase tracking-wider mt-0.5"
+                  style={{ color: s.operation === "checkout" ? T.blueDark : T.pinkDark }}>
+                  {s.operation === "checkout" ? "↗ Check-out" : "↙ Check-in"}
+                </div>
+              </div>
+              <div className="col-span-3">
+                <div className="text-sm font-medium truncate" style={{ color: T.text }}>{s.deviceModel}</div>
+                <div className="text-xs mt-0.5" style={{ color: T.textLight }}>{s.deviceSerial}</div>
+              </div>
+              <div className="col-span-2">
+                <div className="text-sm flex items-center gap-1.5" style={{ color: T.text }}>
+                  <span>{coord?.flag}</span>
+                  <span className="truncate">{s.destinationCity}</span>
+                </div>
+                <div className="text-xs mt-0.5" style={{ color: T.textLight }}>
+                  {t.logistics.countries[s.destinationCountry] || s.destinationCountry}
+                </div>
+              </div>
+              <div className="col-span-2 text-sm truncate" style={{ color: T.textMid }}>{s.recipient}</div>
+              <div className="col-span-2"><ShipmentStatusPill status={s.status} t={t} /></div>
+              <div className="col-span-1 text-right text-xs" style={{ color: T.textLight }}>
+                {s.shippedAt ? formatRelative(s.shippedAt, t) : "—"}
+              </div>
+            </button>
+          );
+        })}
+      </Card>
+    </div>
+  );
+};
+
+const NewShipment = ({ onCreate, onCancel, lang }) => {
+  const t = i18n[lang];
+  const [form, setForm] = useState({
+    operation: "checkout",
+    deviceType: "laptop",
+    deviceModel: "",
+    deviceSerial: "",
+    deviceAssetTag: "",
+    origin: "Lisboa, PT",
+    destinationCountry: "SE",
+    destinationCity: "",
+    destinationAddress: "",
+    recipient: "",
+    carrier: "",
+    trackingNumber: "",
+    expectedDelivery: "",
+    linkedTicket: "",
+  });
+
+  const update = (k, v) => setForm({ ...form, [k]: v });
+
+  const submit = () => {
+    if (!form.deviceModel || !form.recipient || !form.destinationCity) return;
+    const shipment = {
+      id: newShipmentId(),
+      ...form,
+      status: "preparing",
+      createdAt: Date.now(),
+      shippedAt: null,
+      expectedDelivery: form.expectedDelivery ? new Date(form.expectedDelivery).getTime() : null,
+      deliveredAt: null,
+      registeredAt: null,
+    };
+    onCreate(shipment);
+  };
+
+  return (
+    <div className="max-w-3xl">
+      <button onClick={onCancel} className="flex items-center gap-2 text-sm font-medium mb-6 transition-colors"
+        style={{ color: T.textMid }}>
+        <ChevronRight size={14} style={{ transform: "rotate(180deg)" }} />
+        {t.common.back}
+      </button>
+
+      <PageTitle eyebrow={t.logistics.eyebrow} title={t.logistics.newShipment} />
+      <p className="text-base mb-8" style={{ color: T.textMid, lineHeight: 1.6 }}>{t.logistics.newShipmentDesc}</p>
+
+      <Card className="p-6 mb-6">
+        <Field label={t.logistics.operationType}>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { key: "checkout", label: t.logistics.checkout, icon: Plane, color: T.blueDark, bg: T.blueLight },
+              { key: "checkin", label: t.logistics.checkin, icon: ArrowRightLeft, color: T.pinkDark, bg: T.pinkLight },
+            ].map((op) => {
+              const Icon = op.icon;
+              const active = form.operation === op.key;
+              return (
+                <button key={op.key} type="button" onClick={() => update("operation", op.key)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
+                  style={{
+                    backgroundColor: active ? op.bg : T.surface,
+                    border: `1.5px solid ${active ? op.color : T.border}`,
+                    color: active ? op.color : T.textMid,
+                  }}>
+                  <Icon size={18} />
+                  <span className="text-sm font-semibold">{op.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </Field>
+      </Card>
+
+      <Card className="p-6 mb-6">
+        <h3 className="text-lg mb-5" style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}>
+          {t.logistics.deviceInfo}
+        </h3>
+        <div className="space-y-4">
+          <Field label={t.logistics.deviceType}>
+            <select value={form.deviceType} onChange={(e) => update("deviceType", e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl text-sm focus:outline-none cursor-pointer" style={inputStyle}>
+              <option value="laptop">{t.logistics.deviceTypeLaptop}</option>
+              <option value="mobile">{t.logistics.deviceTypeMobile}</option>
+              <option value="dock">{t.logistics.deviceTypeDock}</option>
+              <option value="monitor">{t.logistics.deviceTypeMonitor}</option>
+              <option value="other">{t.logistics.deviceTypeOther}</option>
+            </select>
+          </Field>
+          <Field label={`${t.logistics.deviceModel} *`}>
+            <input type="text" value={form.deviceModel} onChange={(e) => update("deviceModel", e.target.value)}
+              placeholder={t.logistics.deviceModelPh}
+              className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none" style={inputStyle} />
+          </Field>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label={t.logistics.deviceSerial}>
+              <input type="text" value={form.deviceSerial} onChange={(e) => update("deviceSerial", e.target.value)}
+                placeholder={t.logistics.deviceSerialPh}
+                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none" style={inputStyle} />
+            </Field>
+            <Field label={t.logistics.deviceAssetTag}>
+              <input type="text" value={form.deviceAssetTag} onChange={(e) => update("deviceAssetTag", e.target.value)}
+                placeholder={t.logistics.deviceAssetTagPh}
+                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none" style={inputStyle} />
+            </Field>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="p-6 mb-6">
+        <h3 className="text-lg mb-5" style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}>
+          {t.logistics.shipmentDetails}
+        </h3>
+        <div className="space-y-4">
+          <Field label={t.logistics.origin}>
+            <input type="text" value={form.origin} onChange={(e) => update("origin", e.target.value)}
+              placeholder={t.logistics.originPh}
+              className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none" style={inputStyle} />
+          </Field>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label={t.logistics.destinationCountry}>
+              <select value={form.destinationCountry} onChange={(e) => update("destinationCountry", e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl text-sm focus:outline-none cursor-pointer" style={inputStyle}>
+                {Object.keys(COUNTRY_COORDS).map((c) => (
+                  <option key={c} value={c}>{COUNTRY_COORDS[c].flag} {t.logistics.countries[c]}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label={`${t.logistics.destinationCity} *`}>
+              <input type="text" value={form.destinationCity} onChange={(e) => update("destinationCity", e.target.value)}
+                placeholder={t.logistics.destinationCityPh}
+                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none" style={inputStyle} />
+            </Field>
+          </div>
+          <Field label={t.logistics.destinationAddress}>
+            <input type="text" value={form.destinationAddress} onChange={(e) => update("destinationAddress", e.target.value)}
+              placeholder={t.logistics.destinationAddressPh}
+              className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none" style={inputStyle} />
+          </Field>
+          <Field label={`${t.logistics.recipient} *`}>
+            <input type="text" value={form.recipient} onChange={(e) => update("recipient", e.target.value)}
+              placeholder={t.logistics.recipientPh}
+              className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none" style={inputStyle} />
+          </Field>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label={t.logistics.carrier}>
+              <input type="text" value={form.carrier} onChange={(e) => update("carrier", e.target.value)}
+                placeholder={t.logistics.carrierPh}
+                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none" style={inputStyle} />
+            </Field>
+            <Field label={t.logistics.trackingNumber}>
+              <input type="text" value={form.trackingNumber} onChange={(e) => update("trackingNumber", e.target.value)}
+                placeholder={t.logistics.trackingNumberPh}
+                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none" style={inputStyle} />
+            </Field>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field label={t.logistics.expectedDelivery}>
+              <input type="date" value={form.expectedDelivery} onChange={(e) => update("expectedDelivery", e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none" style={inputStyle} />
+            </Field>
+            <Field label={t.logistics.linkedTicket}>
+              <input type="text" value={form.linkedTicket} onChange={(e) => update("linkedTicket", e.target.value)}
+                placeholder={t.logistics.linkedTicketPh}
+                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none" style={inputStyle} />
+            </Field>
+          </div>
+        </div>
+      </Card>
+
+      <button onClick={submit} disabled={!form.deviceModel || !form.recipient || !form.destinationCity}
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-full text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+        style={{ backgroundColor: T.pinkDark, color: "#fff" }}>
+        <Send size={14} />
+        {t.logistics.submit}
+      </button>
+    </div>
+  );
+};
+
+const ShipmentDetail = ({ shipment, onClose, onUpdate, lang, currentUser }) => {
+  if (!shipment) return null;
+  const t = i18n[lang];
+  const coord = COUNTRY_COORDS[shipment.destinationCountry];
+  const currentStageIdx = SHIPMENT_FLOW.indexOf(shipment.status);
+
+  const advance = (newStatus) => {
+    const updates = { ...shipment, status: newStatus };
+    const now = Date.now();
+    if (newStatus === "shipped" && !shipment.shippedAt) updates.shippedAt = now;
+    if (newStatus === "delivered" && !shipment.deliveredAt) updates.deliveredAt = now;
+    if (newStatus === "registered" && !shipment.registeredAt) updates.registeredAt = now;
+    onUpdate(updates);
+  };
+
+  const fmtDate = (ts) => {
+    if (!ts) return t.logistics.detail.notYet;
+    const d = new Date(ts);
+    return d.toLocaleDateString(lang === "pt" ? "pt-PT" : "en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  };
+
+  return (
+    <Modal onClose={onClose}>
+      <div className="p-6 flex items-start justify-between gap-4" style={{ borderBottom: `1px solid ${T.border}` }}>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <span className="text-xs font-medium tabular-nums" style={{ color: T.textMid }}>{shipment.id}</span>
+            <Pill color={shipment.operation === "checkout" ? T.blueDark : T.pinkDark}>
+              {shipment.operation === "checkout" ? t.logistics.checkout : t.logistics.checkin}
+            </Pill>
+            <ShipmentStatusPill status={shipment.status} t={t} />
+          </div>
+          <h2 className="text-2xl leading-tight" style={{ fontFamily: "'DM Serif Display', serif", color: T.text }}>
+            {shipment.deviceModel}
+          </h2>
+        </div>
+        <button onClick={onClose} className="p-1" style={{ color: T.textMid }}><X size={22} /></button>
+      </div>
+
+      <div className="p-6 space-y-5">
+        {/* Progress timeline */}
+        <div className="rounded-xl p-5" style={{ backgroundColor: T.bg2, border: `1px solid ${T.border}` }}>
+          <div className="text-[10px] font-semibold uppercase tracking-wider mb-4" style={{ color: T.textLight }}>
+            {t.logistics.detail.progress}
+          </div>
+          <div className="flex items-center gap-1">
+            {SHIPMENT_FLOW.map((stage, idx) => {
+              const passed = idx <= currentStageIdx;
+              const cfg = SHIPMENT_STATUSES[stage];
+              return (
+                <React.Fragment key={stage}>
+                  <div className="flex-1 flex flex-col items-center">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                      style={{
+                        backgroundColor: passed ? cfg.color : T.surface,
+                        border: `2px solid ${passed ? cfg.color : T.border}`,
+                        color: "#fff",
+                      }}>
+                      {passed ? <CheckCircle2 size={14} /> : <span className="text-[10px] font-bold" style={{ color: T.textLight }}>{idx + 1}</span>}
+                    </div>
+                    <div className="text-[9px] font-semibold uppercase tracking-wider mt-1.5 text-center leading-tight"
+                      style={{ color: passed ? cfg.color : T.textLight }}>
+                      {t.shipmentStatuses[stage]}
+                    </div>
+                  </div>
+                  {idx < SHIPMENT_FLOW.length - 1 && (
+                    <div className="flex-1 h-0.5 mb-6 transition-colors"
+                      style={{ backgroundColor: idx < currentStageIdx ? SHIPMENT_STATUSES[SHIPMENT_FLOW[idx + 1]].color : T.border }} />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Device info */}
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: T.textLight }}>
+            {t.logistics.detail.deviceSection}
+          </div>
+          <div className="grid grid-cols-2 gap-4 rounded-xl p-4" style={{ backgroundColor: T.bg2, border: `1px solid ${T.border}` }}>
+            <DetailItem label={t.logistics.deviceType} value={t.logistics[`deviceType${shipment.deviceType.charAt(0).toUpperCase() + shipment.deviceType.slice(1)}`] || shipment.deviceType} />
+            <DetailItem label={t.logistics.deviceSerial} value={shipment.deviceSerial || "—"} />
+            <DetailItem label={t.logistics.deviceAssetTag} value={shipment.deviceAssetTag || "—"} />
+            <DetailItem label={t.logistics.deviceModel} value={shipment.deviceModel} />
+          </div>
+        </div>
+
+        {/* Shipment info */}
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: T.textLight }}>
+            {t.logistics.detail.shipmentSection}
+          </div>
+          <div className="grid grid-cols-2 gap-4 rounded-xl p-4" style={{ backgroundColor: T.bg2, border: `1px solid ${T.border}` }}>
+            <DetailItem label={t.logistics.origin} value={shipment.origin} />
+            <DetailItem label={t.logistics.destination} value={`${coord?.flag} ${shipment.destinationCity}, ${t.logistics.countries[shipment.destinationCountry] || shipment.destinationCountry}`} />
+            <div className="col-span-2">
+              <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: T.textLight }}>{t.logistics.destinationAddress}</div>
+              <div className="text-sm" style={{ color: T.text }}>{shipment.destinationAddress || "—"}</div>
+            </div>
+            <DetailItem label={t.logistics.recipient} value={shipment.recipient} />
+            <DetailItem label={t.logistics.carrier} value={shipment.carrier || "—"} />
+            {shipment.trackingNumber && (
+              <div className="col-span-2">
+                <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: T.textLight }}>{t.logistics.trackingNumber}</div>
+                <div className="text-sm font-mono" style={{ color: T.text }}>{shipment.trackingNumber}</div>
+              </div>
+            )}
+            {shipment.linkedTicket && (
+              <div className="col-span-2">
+                <div className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: T.textLight }}>{t.logistics.linkedTicket}</div>
+                <Pill color={T.blueDark}>{shipment.linkedTicket}</Pill>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Timeline dates */}
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: T.textLight }}>
+            {t.logistics.detail.timeline}
+          </div>
+          <div className="grid grid-cols-2 gap-4 rounded-xl p-4" style={{ backgroundColor: T.bg2, border: `1px solid ${T.border}` }}>
+            <DetailItem label={t.logistics.detail.sent} value={fmtDate(shipment.shippedAt)} />
+            <DetailItem label={t.logistics.detail.expected} value={fmtDate(shipment.expectedDelivery)} />
+            <DetailItem label={t.logistics.detail.delivered} value={fmtDate(shipment.deliveredAt)} />
+            <DetailItem label={t.logistics.detail.registered} value={fmtDate(shipment.registeredAt)} />
+          </div>
+        </div>
+
+        {/* Actions — only for operator */}
+        {currentUser === "operator" && (
+          <>
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider mb-3" style={{ color: T.textLight }}>
+                {t.logistics.detail.changeStatus}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {SHIPMENT_FLOW.map((stage) => {
+                  const cfg = SHIPMENT_STATUSES[stage];
+                  const active = shipment.status === stage;
+                  return (
+                    <button key={stage} onClick={() => advance(stage)} disabled={active}
+                      className="px-3.5 py-1.5 text-xs font-semibold rounded-full transition-all"
+                      style={{
+                        backgroundColor: active ? `${cfg.color}15` : "transparent",
+                        borderColor: active ? cfg.color : T.border,
+                        borderWidth: 1.5, borderStyle: "solid",
+                        color: active ? cfg.color : T.textMid,
+                        cursor: active ? "default" : "pointer",
+                      }}>
+                      {t.shipmentStatuses[stage]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Register in CMDB CTA */}
+            {shipment.status === "delivered" && (
+              <Card className="p-5" style={{ backgroundColor: T.greenLight, border: `1px solid ${T.green}` }}>
+                <div className="flex items-start gap-4">
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: T.surface }}>
+                    <Building2 size={20} style={{ color: T.greenDark }} />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-base mb-1" style={{ fontFamily: "'DM Serif Display', serif", color: T.greenDark }}>
+                      {t.logistics.detail.registerInCmdb}
+                    </h4>
+                    <p className="text-sm mb-3" style={{ color: T.greenDark }}>{t.logistics.detail.cmdbHint}</p>
+                    <button onClick={() => advance("registered")}
+                      className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold transition-all"
+                      style={{ backgroundColor: T.greenDark, color: "#fff" }}>
+                      <CheckCircle2 size={14} />
+                      {t.logistics.detail.registerInCmdb}
+                    </button>
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            {shipment.status === "registered" && (
+              <div className="flex items-center gap-2 px-4 py-3 rounded-xl"
+                style={{ backgroundColor: T.greenLight, border: `1px solid ${T.green}`, color: T.greenDark }}>
+                <CheckCircle2 size={16} />
+                <span className="text-sm font-semibold">{t.logistics.detail.cmdbDone}</span>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </Modal>
+  );
+};
+
+/* ============================================================
    MAIN APP
 ============================================================ */
 
@@ -3035,14 +4160,17 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(loadUser());
   const [view, setView] = useState("dashboard");
   const [tickets, setTickets] = useState([]);
+  const [shipments, setShipments] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [selectedShipment, setSelectedShipment] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [lang, setLang] = useState(loadLang());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [focusedKbId, setFocusedKbId] = useState(null);
 
-  useEffect(() => { setTickets(loadTickets()); setLoaded(true); }, []);
+  useEffect(() => { setTickets(loadTickets()); setShipments(loadShipments()); setLoaded(true); }, []);
   useEffect(() => { if (loaded) saveTickets(tickets); }, [tickets, loaded]);
+  useEffect(() => { if (loaded) saveShipments(shipments); }, [shipments, loaded]);
   useEffect(() => { saveLang(lang); }, [lang]);
   useEffect(() => { saveUser(currentUser); }, [currentUser]);
 
@@ -3062,6 +4190,16 @@ export default function App() {
   const handleUpdate = (updated) => {
     setTickets(tickets.map((x) => (x.id === updated.id ? updated : x)));
     setSelected(updated);
+  };
+
+  const handleCreateShipment = (shipment) => {
+    setShipments([shipment, ...shipments]);
+    setView("logistics");
+  };
+
+  const handleUpdateShipment = (updated) => {
+    setShipments(shipments.map((x) => (x.id === updated.id ? updated : x)));
+    setSelectedShipment(updated);
   };
 
   const handleLogout = () => {
@@ -3091,6 +4229,7 @@ export default function App() {
     { key: "catalog", label: t.nav.catalog, icon: BookOpen },
     { key: "tickets", label: t.nav.tickets, icon: Ticket },
     { key: "new", label: t.nav.newTicket, icon: PlusCircle },
+    { key: "logistics", label: t.nav.logistics, icon: Package },
     { key: "kb", label: t.nav.kb, icon: HelpCircle },
   ];
 
@@ -3098,6 +4237,7 @@ export default function App() {
     { key: "catalog", label: t.nav.catalog, icon: BookOpen },
     { key: "new", label: t.nav.newTicket, icon: PlusCircle },
     { key: "myTickets", label: t.nav.myTickets, icon: Ticket },
+    { key: "myDevices", label: t.nav.myDevices, icon: Package },
     { key: "kb", label: t.nav.kb, icon: HelpCircle },
   ];
 
@@ -3240,6 +4380,21 @@ export default function App() {
               {view === "kb" && (
                 <KnowledgeBase lang={lang} focusedArticleId={focusedKbId} onClearFocus={() => setFocusedKbId(null)} onOpenTicket={() => setView("new")} />
               )}
+              {view === "logistics" && currentUser === "operator" && (
+                <LogisticsView shipments={shipments} onSelect={setSelectedShipment} onNewShipment={() => setView("newShipment")} lang={lang} currentUser={currentUser} />
+              )}
+              {view === "newShipment" && currentUser === "operator" && (
+                <NewShipment onCreate={handleCreateShipment} onCancel={() => setView("logistics")} lang={lang} />
+              )}
+              {view === "myDevices" && currentUser === "enduser" && (
+                <LogisticsView
+                  shipments={shipments.filter((s) => s.recipient === "End User" || s.linkedTicket?.startsWith("REQ"))}
+                  onSelect={setSelectedShipment}
+                  onNewShipment={() => {}}
+                  lang={lang}
+                  currentUser={currentUser}
+                />
+              )}
             </>
           )}
         </main>
@@ -3247,6 +4402,10 @@ export default function App() {
 
       {selected && (
         <TicketDetail ticket={selected} onClose={() => setSelected(null)} onUpdate={handleUpdate} lang={lang} currentUser={currentUser} />
+      )}
+
+      {selectedShipment && (
+        <ShipmentDetail shipment={selectedShipment} onClose={() => setSelectedShipment(null)} onUpdate={handleUpdateShipment} lang={lang} currentUser={currentUser} />
       )}
     </div>
   );
