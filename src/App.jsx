@@ -2038,24 +2038,44 @@ const LANG_KEY = "fluxoops-lang";
 
 // Defensive normalization: ensures every ticket has the fields the new UI expects,
 // even if loaded from older localStorage versions.
-const normalizeTicket = (t) => ({
-  ...t,
-  type: TICKET_TYPES[t.type] ? t.type : "incident",
-  priority: PRIORITIES[t.priority] ? t.priority : "P3",
-  status: STATUSES[t.status] ? t.status : "new",
-  category: CATEGORIES[t.category] ? t.category : "general",
-  subKey: typeof t.subKey === "number" ? t.subKey : 0,
-  attachments: Array.isArray(t.attachments) ? t.attachments : [],
-});
+const normalizeTicket = (t) => {
+  try {
+    if (!t || typeof t !== "object") return null;
+    return {
+      ...t,
+      id: t.id || `INC-${Math.floor(1000 + Math.random() * 9000)}`,
+      type: TICKET_TYPES[t.type] ? t.type : "incident",
+      priority: PRIORITIES[t.priority] ? t.priority : "P3",
+      status: STATUSES[t.status] ? t.status : "new",
+      category: CATEGORIES[t.category] ? t.category : "general",
+      subKey: typeof t.subKey === "number" ? t.subKey : 0,
+      attachments: Array.isArray(t.attachments) ? t.attachments : [],
+      title: t.title || { pt: "(sem título)", en: "(no title)" },
+      description: t.description || { pt: "", en: "" },
+      requester: t.requester || "—",
+      team: t.team || "Service Desk",
+      createdAt: typeof t.createdAt === "number" ? t.createdAt : Date.now(),
+      updatedAt: typeof t.updatedAt === "number" ? t.updatedAt : Date.now(),
+    };
+  } catch (e) {
+    console.warn("Ticket normalization failed, skipping:", e);
+    return null;
+  }
+};
 
 const loadTickets = () => {
   try {
     const raw = localStorage.getItem(TICKETS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed.map(normalizeTicket);
+      if (Array.isArray(parsed)) {
+        const normalized = parsed.map(normalizeTicket).filter(Boolean);
+        if (normalized.length > 0) return normalized;
+      }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn("loadTickets failed, using seed:", e);
+  }
   return SEED_TICKETS;
 };
 const saveTickets = (tickets) => {
@@ -2504,14 +2524,24 @@ const Dashboard = ({ tickets, lang }) => {
 
   const byPriority = useMemo(() => {
     const map = { P1: 0, P2: 0, P3: 0, P4: 0 };
-    tickets.filter((x) => x.status !== "resolved" && x.status !== "closed").forEach((x) => (map[x.priority] = (map[x.priority] || 0) + 1));
-    return Object.entries(map).map(([k, v]) => ({ name: k, value: v, color: PRIORITIES[k].color }));
+    tickets.filter((x) => x.status !== "resolved" && x.status !== "closed").forEach((x) => {
+      const key = PRIORITIES[x.priority] ? x.priority : "P3";
+      map[key] = (map[key] || 0) + 1;
+    });
+    return Object.entries(map)
+      .filter(([k]) => PRIORITIES[k])
+      .map(([k, v]) => ({ name: k, value: v, color: PRIORITIES[k].color }));
   }, [tickets]);
 
   const byType = useMemo(() => {
     const map = { incident: 0, service_request: 0, change: 0 };
-    tickets.filter((x) => x.status !== "resolved" && x.status !== "closed").forEach((x) => (map[x.type] = (map[x.type] || 0) + 1));
-    return Object.entries(map).map(([k, v]) => ({ key: k, value: v, color: TICKET_TYPES[k].color, label: t.typesShort[k] }));
+    tickets.filter((x) => x.status !== "resolved" && x.status !== "closed").forEach((x) => {
+      const key = TICKET_TYPES[x.type] ? x.type : "incident";
+      map[key] = (map[key] || 0) + 1;
+    });
+    return Object.entries(map)
+      .filter(([k]) => TICKET_TYPES[k])
+      .map(([k, v]) => ({ key: k, value: v, color: TICKET_TYPES[k].color, label: t.typesShort[k] }));
   }, [tickets, lang]);
 
   const trend = useMemo(() => {
@@ -4407,6 +4437,57 @@ const QuickTour = ({ steps, onFinish, lang }) => {
 };
 
 /* ============================================================
+   ERROR BOUNDARY
+============================================================ */
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, info) {
+    console.error("FluxoOps error boundary:", error, info);
+  }
+  resetData = () => {
+    try {
+      ["fluxoops-tickets-v4", "fluxoops-shipments-v1", "fluxoops-tour-completed", "fluxoops-user", "fluxoops-lang"].forEach((k) => localStorage.removeItem(k));
+    } catch (e) {}
+    window.location.reload();
+  };
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ minHeight: "100vh", backgroundColor: T.bg, padding: "3rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "DM Sans, sans-serif" }}>
+          <div style={{ maxWidth: 480, backgroundColor: T.surface, border: `1px solid ${T.border}`, borderRadius: 16, padding: "2rem" }}>
+            <div style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: T.pinkLight, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1rem" }}>
+              <AlertTriangle size={22} style={{ color: T.pinkDark }} />
+            </div>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: T.text, marginBottom: "0.5rem" }}>Algo deu errado</h2>
+            <p style={{ fontSize: 14, color: T.textMid, marginBottom: "1.5rem", lineHeight: 1.6 }}>
+              O FluxoOps encontrou um erro inesperado. Provavelmente são dados antigos no navegador. Reinicia que costuma resolver.
+            </p>
+            <details style={{ marginBottom: "1.5rem", fontSize: 12, color: T.textLight }}>
+              <summary style={{ cursor: "pointer", marginBottom: "0.5rem" }}>Detalhes técnicos</summary>
+              <pre style={{ backgroundColor: T.bg2, padding: "0.75rem", borderRadius: 8, overflow: "auto", fontSize: 11 }}>
+                {String(this.state.error?.message || this.state.error || "unknown")}
+              </pre>
+            </details>
+            <button onClick={this.resetData}
+              style={{ width: "100%", padding: "0.75rem 1rem", borderRadius: 999, backgroundColor: T.pinkDark, color: "#fff", border: "none", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+              Reiniciar e limpar dados
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+/* ============================================================
    MAIN APP
 ============================================================ */
 
@@ -4420,7 +4501,7 @@ const loadUser = () => {
 };
 const saveUser = (u) => { try { u ? localStorage.setItem(USER_KEY, u) : localStorage.removeItem(USER_KEY); } catch (e) {} };
 
-export default function App() {
+function AppInner() {
   const [currentUser, setCurrentUser] = useState(loadUser());
   const [view, setView] = useState("dashboard");
   const [tickets, setTickets] = useState([]);
@@ -4718,5 +4799,13 @@ export default function App() {
         return <QuickTour steps={tourSteps} onFinish={finishTour} lang={lang} />;
       })()}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <AppInner />
+    </ErrorBoundary>
   );
 }
