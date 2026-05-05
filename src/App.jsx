@@ -1902,7 +1902,8 @@ const formatFileSize = (bytes) => {
 const slaStatus = (ticket) => {
   if (ticket.status === "resolved" || ticket.status === "closed") return { state: "ok", pct: 100 };
   const elapsed = (Date.now() - ticket.createdAt) / 60000;
-  const target = PRIORITIES[ticket.priority].slaResolveMin;
+  const prio = PRIORITIES[ticket.priority] || PRIORITIES.P3;
+  const target = prio.slaResolveMin;
   const pct = Math.min(100, (elapsed / target) * 100);
   if (pct >= 100) return { state: "breach", pct: 100 };
   if (pct >= 75) return { state: "risk", pct };
@@ -1985,7 +1986,11 @@ const categorizeWithAI = async (title, description) => {
   }
   if (bestCat === "security" && (priority === "P3" || priority === "P4")) priority = "P2";
 
-  const cat = CATEGORIES[bestCat];
+  // Final safety net: ensure all fields are valid before returning
+  const safeCat = CATEGORIES[bestCat] ? bestCat : "general";
+  const safePrio = PRIORITIES[priority] ? priority : "P3";
+  const safeType = TICKET_TYPES[detectedType] ? detectedType : "incident";
+  const cat = CATEGORIES[safeCat];
   let subKey = 0;
   cat.subcategories.pt.forEach((sub, idx) => {
     const firstWord = sub.toLowerCase().split(" ")[0].replace(/[—,.]/g, "");
@@ -1993,12 +1998,12 @@ const categorizeWithAI = async (title, description) => {
   });
 
   return {
-    type: detectedType,
-    category: bestCat,
+    type: safeType,
+    category: safeCat,
     subKey,
-    priority,
+    priority: safePrio,
     team: cat.defaultTeam,
-    aiKey: bestCat,
+    aiKey: safeCat,
   };
 };
 
@@ -2031,10 +2036,25 @@ const suggestKbArticles = (title, description, lang) => {
 const TICKETS_KEY = "fluxoops-tickets-v4";
 const LANG_KEY = "fluxoops-lang";
 
+// Defensive normalization: ensures every ticket has the fields the new UI expects,
+// even if loaded from older localStorage versions.
+const normalizeTicket = (t) => ({
+  ...t,
+  type: TICKET_TYPES[t.type] ? t.type : "incident",
+  priority: PRIORITIES[t.priority] ? t.priority : "P3",
+  status: STATUSES[t.status] ? t.status : "new",
+  category: CATEGORIES[t.category] ? t.category : "general",
+  subKey: typeof t.subKey === "number" ? t.subKey : 0,
+  attachments: Array.isArray(t.attachments) ? t.attachments : [],
+});
+
 const loadTickets = () => {
   try {
     const raw = localStorage.getItem(TICKETS_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed.map(normalizeTicket);
+    }
   } catch (e) {}
   return SEED_TICKETS;
 };
